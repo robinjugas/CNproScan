@@ -47,13 +47,16 @@ genmap map -K 30 -E 2 -I mapp_index -O mapp_genmap -t -w -bg
 R script:
 ```
 CNproScanCNV(coverage_file, bam_file, fasta_file,number of threads)
+```
+Inputs:
 coverage_file = path to the .coverage file
 bam_file = path to the .bam file
-fasta_file = 
-number of threads = 
+fasta_file = path to the .fasta file
+number of threads = number of cores for foreach %dopar%. Recommended default = 4, or more. 
 
+Outputs:
+dataframe containing the detected CNVs
 
-```
 
 ## In development - will be added:
 <ul>
