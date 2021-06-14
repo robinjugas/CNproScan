@@ -1,8 +1,15 @@
 # CNproScan
-CNproScan is a set of MATLAB functions to detect CNV in bacteria genomes. 
+CNproScan is R package developed for CNV detection in bacterial genomes. It employs Generalized Extreme Studentized Deviate test for outliers to detect CNVs in read-depth data with discordant reads detection to annotate the CNVs. 
+The package is still in development. 
+
+## Dependencies:
+Package was tested on R 4.1.0 with several dependencies: parallel, foreach, doParallel, seqinr, Rsamtools, GenomicRanges, IRanges. 
 
 ## Installation
-Clone the whole repository or the folder with MATLAB files (CNV_detekce_final_v6_CNV2) and modify the running script. 
+```
+devtools::install_github("robinjugas/CNproScan")
+```
+
 
 ## Input files:
 Several input files are neccessary:

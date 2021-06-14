@@ -1,0 +1,24 @@
+Package: CNproScan
+Title: CNproScan detects and annotates CNVs in bacterial genomes. 
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Robin",
+           family = "Jugas",
+           role = c("aut", "cre"),
+           email = "robinjugas@gmail.com",
+           comment = c(ORCID = "0000-0003-4675-0985"))
+Description: CNproScan applies Generalized Extreme Studentized Deviate to detect outliers in the read-depth signal. 
+  It also analyses BAM file for discovering read pairs mapping discordancies, which are used for CNV annotation. 
+  See https://github.com/robinjugas/CNproScan
+License: `use_mit_license()`
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
+Imports:
+	parallel,
+	foreach,
+	doParallel,
+	seqinr,
+	Rsamtools,
+	GenomicRanges
