@@ -1,13 +1,13 @@
 # build container in current folder
-docker build -t CNproScan_docker .
+docker build -t cnproscan_docker .
 
 # first RUN, set password for root account rstudio
-docker run -e PASSWORD=1234 -p 8787:8787 -it -v ~/ownCloud/WORK/CNproScan/data/:/home/data --user rstudio --name CNproScan_DOCKER CNproScan_docker:latest
+docker run -e PASSWORD=1234 -p 8787:8787 -it -v ~/ownCloud/WORK/CNproScan/data/:/home/data --user rstudio --name cnproscan_docker cnproscan_docker:latest
 
 # STOP containers
-docker container stop CNproScan_DOCKER
+docker container stop cnproscan_docker
 
-docker rm CNproScan_DOCKER
+docker rm cnproscan_docker
 
 
 
