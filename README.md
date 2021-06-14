@@ -1,6 +1,7 @@
 # CNproScan
 CNproScan is R package developed for CNV detection in bacterial genomes. It employs Generalized Extreme Studentized Deviate test for outliers to detect CNVs in read-depth data with discordant reads detection to annotate the CNVs. 
 The package is still in development. Namely, the normalization part of package is still in development. 
+The Matlab version is here: https://github.com/robinjugas/CNproScanMatlab
 
 ## Dependencies:
 Package was tested on R 4.1.0 with several dependencies: parallel, foreach, doParallel, seqinr, Rsamtools, GenomicRanges, IRanges. 
