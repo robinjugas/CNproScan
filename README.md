@@ -16,6 +16,7 @@ Several input files are neccessary:
 <ol>
 <li>reference sequence FASTA file used in the read alignment</li>
 <li>sorted and indexed BAM file from the read-aligner </li>
+
 ```
 bwa index -a is reference.fasta
 samtools faidx reference.fasta
@@ -26,11 +27,13 @@ samtools index file.bam
 ```
 
 <li>coverage file (including zero values) </li>
+
 ```
 samtools depth -a file.bam > file.coverage
 ```
 
 <li>genome mappability file - obtained by GENMAP (https://github.com/cpockrandt/genmap) </li>
+
 ```
 genmap index -F reference.fasta -I mapp_index
 genmap map -K 30 -E 2 -I mapp_index -O mapp_genmap -t -w -bg
