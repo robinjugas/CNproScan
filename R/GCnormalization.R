@@ -3,7 +3,7 @@
 #' Inputs: coverage dataframe (1st col POS, 2nd col CCOVERAGE), path to fasta file
 #' Output:  vector of modified COVERAGE values
 #' 
-#' @importFrom seqinr getLength read.fasta GC
+#' @importFrom seqinr read.fasta GC
 #' @param infile Path to the input file
 #' @return A vector of new coverage values
 #' @export

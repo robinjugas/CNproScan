@@ -5,14 +5,15 @@
 #' @importFrom parallel splitIndices makeCluster stopCluster
 #' @importFrom foreach foreach "%dopar%"
 #' @importFrom doParallel registerDoParallel
-#' @importFrom seqinr getLength read.fasta
+#' @importFrom seqinr getLength read.fasta GC
 #' @importFrom Rsamtools scanBamFlag ScanBamParam scanBam
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges
+#' @importFrom mgcv gam predict.gam
 #' @param infile Path to the input file
 #' @return A vector of outliers indices from input
 #' @export
-CNproScanCNV <- function(coveragefile,bamFile,fastaFile,cores=2){
+CNproScanCNV <- function(coveragefile,bamFile,fastaFile,...,cores=2,GCnorm=FALSE,MAPnorm=FALSE,REPLnorm=FALSE,oriC_position=1,bedgraphFile=""){
   ################################################################################
   
   # CONSTANT PARAMETERS
@@ -31,6 +32,13 @@ CNproScanCNV <- function(coveragefile,bamFile,fastaFile,cores=2){
   ################################################################################
   ##  READ FASTA FILE
   referenceLength<-seqinr::getLength(read.fasta(fastaFile,seqonly = TRUE))
+  
+  ################################################################################
+  ## NORMALIZATION
+  coverageNEW <- coverage$COVERAGE
+  if (GCnorm==TRUE){coverageNEW <- GCnormalization(coverageNEW,fastaFile)}
+  if (MAPnorm==TRUE){coverageNEW <- MAPPABILITYnormalization(coverageNEW, bedgraphFile)}
+  if (REPLnorm==TRUE){coverageNEW   <- ORICnormalization(coverageNEW, oriC_position)}
   
   ################################################################################
   ## DELETING crossovers at the start and at the end and replace them by mean of whole coverage

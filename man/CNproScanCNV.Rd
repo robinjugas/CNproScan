@@ -6,7 +6,18 @@
 This function detects and annotate CNVs in bacterial genomes. It uses GESD outliers detection
 and detection of discordant read-pairs for annotation.}
 \usage{
-CNproScanCNV(coveragefile, bamFile, fastaFile, cores = 2)
+CNproScanCNV(
+  coveragefile,
+  bamFile,
+  fastaFile,
+  ...,
+  cores = 2,
+  GCnorm = FALSE,
+  MAPnorm = FALSE,
+  REPLnorm = FALSE,
+  oriC_position = 1,
+  bedgraphFile = ""
+)
 }
 \arguments{
 \item{infile}{Path to the input file}
