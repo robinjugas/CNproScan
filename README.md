@@ -40,7 +40,7 @@ genmap index -F reference.fasta -I mapp_index
 genmap map -K 30 -E 2 -I mapp_index -O mapp_genmap -t -w -bg
 ```
 
-<li>oriC position - use DoriC database (http://tubic.org/doric/public/index.php/search)</li>
+<li>oriC position - use DoriC database (http://tubic.org/doric/public/index.php/search) - only for replication origin normalization</li>
 </ol>
 
 ## Usage:
