@@ -33,7 +33,7 @@ samtools index file.bam
 samtools depth -a file.bam > file.coverage
 ```
 
-<li>genome mappability file - obtained by GENMAP (https://github.com/cpockrandt/genmap) </li>
+<li>genome mappability file - obtained by GENMAP (https://github.com/cpockrandt/genmap) - only for mappability normalization </li>
 
 ```
 genmap index -F reference.fasta -I mapp_index
