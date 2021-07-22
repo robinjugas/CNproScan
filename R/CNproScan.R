@@ -50,16 +50,18 @@ CNproScanCNV <- function(coveragefile,bamFile,fastaFile,cores=2){
   differences<-diff(idxDEL)
   kk<-which(differences>1 & differences<peakDistanceThreshold)
   
-  for (i in seq(1,length(kk))){
-    CNVdistance <- idxDEL[kk[i]+1] - idxDEL[kk[i]]
-    
-    vec <- seq(idxDEL[kk[i]]+1, idxDEL[kk[i]]+CNVdistance-1) # coordinates to fill in the gap between 2 outliers
-    #concatenate in between
-    idxDEL <-c ( idxDEL[1:kk[i]] ,vec, idxDEL[(kk[i]+1):length(idxDEL)] )
-    
-    korekce <- CNVdistance-1 #correction - idx longer by one
-    
-    kk <- kk+korekce # correction so for loop is not biased by increased kk
+  if(length(kk)){
+    for (i in seq(1,length(kk))){
+      CNVdistance <- idxDEL[kk[i]+1] - idxDEL[kk[i]]
+      
+      vec <- seq(idxDEL[kk[i]]+1, idxDEL[kk[i]]+CNVdistance-1) # coordinates to fill in the gap between 2 outliers
+      #concatenate in between
+      idxDEL <-c ( idxDEL[1:kk[i]] ,vec, idxDEL[(kk[i]+1):length(idxDEL)] )
+      
+      korekce <- CNVdistance-1 #correction - idx longer by one
+      
+      kk <- kk+korekce # correction so for loop is not biased by increased kk
+    }
   }
   
   ################################################################################
@@ -146,22 +148,23 @@ CNproScanCNV <- function(coveragefile,bamFile,fastaFile,cores=2){
   
   Outliers <- Outliers[Outliers!=0] #remove zeroes
   
-  ################################################################################
+  ##############################################################################
   ## MERGING CLOSE OUTLIERS TOGETHER -> DUPLICATIONS
   idxGESD<-sort(Outliers)
   differences<-diff(idxGESD)
   kk<-which(differences>1 & differences<peakDistanceThreshold)
   
-  for (i in seq(1,length(kk))){
-    CNVdistance <- idxGESD[kk[i]+1] - idxGESD[kk[i]]
-    vec <- seq(idxGESD[kk[i]]+1, idxGESD[kk[i]]+CNVdistance-1) # coordinates to fill in the gap between 2 outliers
-    #concatenate in between
-    idxGESD <-c ( idxGESD[1:kk[i]] ,vec, idxGESD[(kk[i]+1):length(idxGESD)] )
-    korekce <- CNVdistance-1 #correction - idxGESD longer by one
-    kk <- kk+korekce # correction so for loop is not biased by increased kk
+  if(length(kk)){
+    for (i in seq(1,length(kk))){
+      CNVdistance <- idxGESD[kk[i]+1] - idxGESD[kk[i]]
+      vec <- seq(idxGESD[kk[i]]+1, idxGESD[kk[i]]+CNVdistance-1) # coordinates to fill in the gap between 2 outliers
+      #concatenate in between
+      idxGESD <-c ( idxGESD[1:kk[i]] ,vec, idxGESD[(kk[i]+1):length(idxGESD)] )
+      korekce <- CNVdistance-1 #correction - idxGESD longer by one
+      kk <- kk+korekce # correction so for loop is not biased by increased kk
+    }
   }
-  
-  ################################################################################
+  ##############################################################################
   ## PREPROCESSING of DUPLICATIONS into cell datatype
   idx <- idxGESD
   outliers_value <- coverage$COVERAGE[idx]
