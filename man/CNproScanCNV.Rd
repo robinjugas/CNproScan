@@ -2,9 +2,10 @@
 % Please edit documentation in R/CNproScan.R
 \name{CNproScanCNV}
 \alias{CNproScanCNV}
-\title{Modified Z-score by Iglewicz and Hoaglin
-This function loads a vector of coverage/read-depth values. It returns the indices of potential outliers.
-See https://www.itl.nist.gov/div898/handbook/eda/section3/eda35h.htm}
+\title{CNproScan - CNV detection for bacteria
+This function detects and annotate CNVs in bacterial genomes. It uses GESD outliers detection
+and detection of discordant read-pairs for annotation.
+Last Update: 5/10/2021}
 \usage{
 CNproScanCNV(coveragefile, bamFile, fastaFile, cores = 2)
 }
@@ -15,7 +16,8 @@ CNproScanCNV(coveragefile, bamFile, fastaFile, cores = 2)
 A vector of outliers indices from input
 }
 \description{
-Modified Z-score by Iglewicz and Hoaglin
-This function loads a vector of coverage/read-depth values. It returns the indices of potential outliers.
-See https://www.itl.nist.gov/div898/handbook/eda/section3/eda35h.htm
+CNproScan - CNV detection for bacteria
+This function detects and annotate CNVs in bacterial genomes. It uses GESD outliers detection
+and detection of discordant read-pairs for annotation.
+Last Update: 5/10/2021
 }
