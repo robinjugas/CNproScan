@@ -1,24 +1,26 @@
 #' CNproScan - CNV detection for bacteria
 #' This function detects and annotate CNVs in bacterial genomes. It uses GESD outliers detection 
 #' and detection of discordant read-pairs for annotation. 
+#' Last Update: 5/10/2021
 #' 
 #' @importFrom parallel splitIndices makeCluster stopCluster
 #' @importFrom foreach foreach "%dopar%"
 #' @importFrom doParallel registerDoParallel
-#' @importFrom seqinr getLength read.fasta GC
+#' @importFrom seqinr getLength read.fasta
 #' @importFrom Rsamtools scanBamFlag ScanBamParam scanBam
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges
-#' @importFrom mgcv gam predict.gam
 #' @param infile Path to the input file
 #' @return A vector of outliers indices from input
 #' @export
-CNproScanCNV <- function(coveragefile,bamFile,fastaFile,...,cores=2,GCnorm=FALSE,MAPnorm=FALSE,REPLnorm=FALSE,oriC_position=1,bedgraphFile=""){
+#' 
+CNproScanCNV <- function(coveragefile,bamFile,fastaFile,cores=2){
   ################################################################################
   
   # CONSTANT PARAMETERS
   peakDistanceThreshold<-20
   step<-11
+  TRIGGER<-5
   
   ################################################################################
   ##  IMPORT COVERAGE FILE
@@ -31,22 +33,14 @@ CNproScanCNV <- function(coveragefile,bamFile,fastaFile,...,cores=2,GCnorm=FALSE
   
   ################################################################################
   ##  READ FASTA FILE
-  referenceLength<-seqinr::getLength(read.fasta(fastaFile,seqonly = TRUE))
-  
-  ################################################################################
-  ## NORMALIZATION
-  coverageNEW <- coverage$COVERAGE
-  if (GCnorm==TRUE){coverageNEW <- GCnormalization(coverageNEW,fastaFile)}
-  if (MAPnorm==TRUE){coverageNEW <- MAPPABILITYnormalization(coverageNEW, bedgraphFile)}
-  if (REPLnorm==TRUE){coverageNEW   <- ORICnormalization(coverageNEW, oriC_position)}
+  referenceLength<-seqinr::getLength(seqinr::read.fasta(fastaFile,seqonly = TRUE))
   
   ################################################################################
   ## DELETING crossovers at the start and at the end and replace them by mean of whole coverage
   cutoff <- 500
-  coverage$COVERAGE[1:cutoff] <-  rep(mean(coverage$COVERAGE), times=length(coverage$COVERAGE[1:cutoff] ))
+  coverage$COVERAGE[1:cutoff] <- rep(mean(coverage$COVERAGE), times=length(coverage$COVERAGE[1:cutoff] ))
   end <- length(coverage$COVERAGE)
-  coverage$COVERAGE[(end-cutoff):end] <- 
-    rep(mean(coverage$COVERAGE), times=length(coverage$COVERAGE[(end-cutoff):end] ))
+  coverage$COVERAGE[(end-cutoff):end] <- rep(mean(coverage$COVERAGE), times=length(coverage$COVERAGE[(end-cutoff):end] ))
   
   ################################################################################
   ## ZERO COVERAGE -> DELETIONS, 
@@ -58,16 +52,18 @@ CNproScanCNV <- function(coveragefile,bamFile,fastaFile,...,cores=2,GCnorm=FALSE
   differences<-diff(idxDEL)
   kk<-which(differences>1 & differences<peakDistanceThreshold)
   
-  for (i in seq(1,length(kk))){
-    CNVdistance <- idxDEL[kk[i]+1] - idxDEL[kk[i]]
-    
-    vec <- seq(idxDEL[kk[i]]+1, idxDEL[kk[i]]+CNVdistance-1) # coordinates to fill in the gap between 2 outliers
-    #concatenate in between
-    idxDEL <-c ( idxDEL[1:kk[i]] ,vec, idxDEL[(kk[i]+1):length(idxDEL)] )
-    
-    korekce <- CNVdistance-1 #correction - idx longer by one
-    
-    kk <- kk+korekce # correction so for loop is not biased by increased kk
+  if(length(kk)){
+    for (i in seq(1,length(kk))){
+      CNVdistance <- idxDEL[kk[i]+1] - idxDEL[kk[i]]
+      
+      vec <- seq(idxDEL[kk[i]]+1, idxDEL[kk[i]]+CNVdistance-1) # coordinates to fill in the gap between 2 outliers
+      #concatenate in between
+      idxDEL <-c ( idxDEL[1:kk[i]] ,vec, idxDEL[(kk[i]+1):length(idxDEL)] )
+      
+      korekce <- CNVdistance-1 #correction - idx longer by one
+      
+      kk <- kk+korekce # correction so for loop is not biased by increased kk
+    }
   }
   
   ################################################################################
@@ -77,43 +73,53 @@ CNproScanCNV <- function(coveragefile,bamFile,fastaFile,...,cores=2,GCnorm=FALSE
   differences <- diff(idx)
   k <- which(differences>1)
   
-  # https://stackoverflow.com/a/65758426 
-  # list with a dimension attribute:
-  peaks <- vector("list", length = length(k)+1)
-  dim(peaks) <- c(length(k)+1, 1)
-  
-  for (i in seq(1,length(k)+1)){
-    if (i==1){ #FIRST peak
-      matrixtemp <- cbind(idx[1 : k[i]], outliers_value[1 : k[i]])
-      peaks[[i, 1]] <- matrixtemp
-    }else if(i==length(k)+1){ #LAST peak
-      matrixtemp <- cbind(idx[ (k[i-1]+1) : length(idx)], outliers_value[ (k[i-1]+1) : length(outliers_value)])
-      peaks[[i, 1]] <- matrixtemp
-    }else{ #IN BETWEEN peaks
-      matrixtemp <- cbind(idx[ (k[i-1]+1) : k[i] ], outliers_value[( k[i-1]+1) : k[i]  ])
-      peaks[[i, 1]] <- matrixtemp
+  if(length(k)){
+    # https://stackoverflow.com/a/65758426 
+    # list with a dimension attribute:
+    peaks <- vector("list", length = length(k)+1)
+    dim(peaks) <- c(length(k)+1, 1)
+    for (i in seq(1,length(k)+1)){
+      if (i==1){ #FIRST peak
+        matrixtemp <- cbind(idx[1 : k[i]], outliers_value[1 : k[i]])
+        peaks[[i, 1]] <- matrixtemp
+      }else if(i==length(k)+1){ #LAST peak
+        matrixtemp <- cbind(idx[ (k[i-1]+1) : length(idx)], outliers_value[ (k[i-1]+1) : length(outliers_value)])
+        peaks[[i, 1]] <- matrixtemp
+      }else{ #IN BETWEEN peaks
+        matrixtemp <- cbind(idx[ (k[i-1]+1) : k[i] ], outliers_value[( k[i-1]+1) : k[i]  ])
+        peaks[[i, 1]] <- matrixtemp
+      }
     }
+    ## SAVE into dataframe
+    DEL_DF <- data.frame(ID=as.character(),START=integer(),END=integer(),LENGTH=integer(),COVERAGE=integer(),TYPE=character())
+    for(i in 1:length(peaks)){
+      start <-  peaks[[i, 1]] [1, 1]
+      nrows <- nrow(peaks[[i, 1]])
+      stop <- peaks[[i, 1]] [nrows, 1]
+      DEL_DF[i,"ID"] <- i
+      DEL_DF[i,"START"] <- start
+      DEL_DF[i,"END"] <- stop
+      DEL_DF[i,"LENGTH"] <- (stop - start)
+      DEL_DF[i,"COVERAGE"] <- mean(coverage$COVERAGE[start:stop])
+      DEL_DF[i,"TYPE"] <- "DEL"
+    }
+    ## DELETIONS COVERAGE VALUE REPLACED BY MEAN - INFLUENCES GESD OUTLIERS DETECTION
+    coverage$COVERAGE[idxDEL] <- mean(coverage$COVERAGE)
   }
-  
-  ## SAVE into dataframe
-  DEL_DF <- data.frame(ID=as.character(),START=integer(),END=integer(),LENGTH=integer(),COVERAGE=integer(),TYPE=character())
-  for(i in 1:length(peaks)){
-    start <-  peaks[[i, 1]] [1, 1]
-    nrows <- nrow(peaks[[i, 1]])
-    stop <- peaks[[i, 1]] [nrows, 1]
-    DEL_DF[i,"ID"] <- i
+  # if only single deletion is detected
+  if(length(k)==0 & length(idxDEL)!=0){
+    DEL_DF <- data.frame(ID=as.character(),START=integer(),END=integer(),LENGTH=integer(),COVERAGE=integer(),TYPE=character())
+    start <-  idxDEL[1]
+    stop <- idxDEL[length(idxDEL)]
+    DEL_DF[i,"ID"] <- 1
     DEL_DF[i,"START"] <- start
     DEL_DF[i,"END"] <- stop
     DEL_DF[i,"LENGTH"] <- (stop - start)
     DEL_DF[i,"COVERAGE"] <- mean(coverage$COVERAGE[start:stop])
     DEL_DF[i,"TYPE"] <- "DEL"
   }
-  
-  ## DELETIONS COVERAGE VALUE REPLACED BY MEAN - INFLUENCES GESD OUTLIERS DETECTION
-  coverage$COVERAGE[idxDEL] <- mean(coverage$COVERAGE)
-  
   ################################################################################
-  ## DUPLICATIONS
+  ## CNV EVENTS
   ## PARALLEL LOOP OUTLIERS DETECTION
   
   # cores <- parallel::detectCores(logical = FALSE) #should be odd?
@@ -152,53 +158,61 @@ CNproScanCNV <- function(coveragefile,bamFile,fastaFile,...,cores=2,GCnorm=FALSE
   #stop cluster
   parallel::stopCluster(cl = my.cluster)
   
-  Outliers <- Outliers[Outliers!=0] #remove zeroes
+  Outliers <- Outliers[Outliers!=0] #remove zeros
   
-  ################################################################################
-  ## MERGING CLOSE OUTLIERS TOGETHER -> DUPLICATIONS
+  ##############################################################################
+  ## MERGING CLOSE CNV EVENTS TOGETHER
   idxGESD<-sort(Outliers)
   differences<-diff(idxGESD)
   kk<-which(differences>1 & differences<peakDistanceThreshold)
   
-  for (i in seq(1,length(kk))){
-    CNVdistance <- idxGESD[kk[i]+1] - idxGESD[kk[i]]
-    vec <- seq(idxGESD[kk[i]]+1, idxGESD[kk[i]]+CNVdistance-1) # coordinates to fill in the gap between 2 outliers
-    #concatenate in between
-    idxGESD <-c ( idxGESD[1:kk[i]] ,vec, idxGESD[(kk[i]+1):length(idxGESD)] )
-    korekce <- CNVdistance-1 #correction - idxGESD longer by one
-    kk <- kk+korekce # correction so for loop is not biased by increased kk
+  if(length(kk)){
+    for (i in seq(1,length(kk))){
+      CNVdistance <- idxGESD[kk[i]+1] - idxGESD[kk[i]]
+      vec <- seq(idxGESD[kk[i]]+1, idxGESD[kk[i]]+CNVdistance-1) # coordinates to fill in the gap between 2 outliers
+      #concatenate in between
+      idxGESD <-c ( idxGESD[1:kk[i]] ,vec, idxGESD[(kk[i]+1):length(idxGESD)] )
+      korekce <- CNVdistance-1 #correction - idxGESD longer by one
+      kk <- kk+korekce # correction so for loop is not biased by increased kk
+    }
   }
-  
-  ################################################################################
-  ## PREPROCESSING of DUPLICATIONS into cell datatype
+  ##############################################################################
+  ## PREPROCESSING of CNV EVENTS into cell datatype
   idx <- idxGESD
   outliers_value <- coverage$COVERAGE[idx]
   differences <- diff(idx)
   k <- which(differences>1)
   
-  # https://stackoverflow.com/a/65758426 
-  # list with a dimension attribute:
-  peaks <- vector("list", length = length(k)+1)
-  dim(peaks) <- c(length(k)+1, 1)
-  
-  
-  for (i in seq(1,length(k)+1)){
-    if (i==1){ #FIRST peak
-      matrixtemp <- cbind(idx[1 : k[i]], outliers_value[1 : k[i]])
-      peaks[[i, 1]] <- matrixtemp
-    }else if(i==length(k)+1){ #LAST peak
-      matrixtemp <- cbind(idx[ (k[i-1]+1) : length(idx)], outliers_value[ (k[i-1]+1) : length(outliers_value)])
-      peaks[[i, 1]] <- matrixtemp
-    }else{ #IN BETWEEN peaks
-      matrixtemp <- cbind(idx[ (k[i-1]+1) : k[i] ], outliers_value[( k[i-1]+1) : k[i]  ])
-      peaks[[i, 1]] <- matrixtemp
+  if(length(k)){
+    # https://stackoverflow.com/a/65758426 
+    # list with a dimension attribute:
+    peaks <- vector("list", length = length(k)+1)
+    dim(peaks) <- c(length(k)+1, 1)
+    for (i in seq(1,length(k)+1)){
+      if (i==1){ #FIRST peak
+        matrixtemp <- cbind(idx[1 : k[i]], outliers_value[1 : k[i]])
+        peaks[[i, 1]] <- matrixtemp
+      }else if(i==length(k)+1){ #LAST peak
+        matrixtemp <- cbind(idx[ (k[i-1]+1) : length(idx)], outliers_value[ (k[i-1]+1) : length(outliers_value)])
+        peaks[[i, 1]] <- matrixtemp
+      }else{ #IN BETWEEN peaks
+        matrixtemp <- cbind(idx[ (k[i-1]+1) : k[i] ], outliers_value[( k[i-1]+1) : k[i]  ])
+        peaks[[i, 1]] <- matrixtemp
+      }
     }
+  }
+  # if only single CNV is detected
+  if(length(k)==0 & length(idxGESD)!=0)
+  {
+    peaks <- vector("list", length = 1)
+    dim(peaks) <- c(1, 1)
+    matrixtemp <- cbind(idx, outliers_value)
+    peaks[[1, 1]] <- matrixtemp
   }
   
   ################################################################################
-  ## DUPLICATIONS BORDERS DETECTION based on slope of a peak
+  ## CNV EVENTS BORDERS DETECTION based on slope of a peak
   # works only on POSITIVE PEAKS, NOT NEGATIVE PEAKS - DELETIONS ?
-  
   peaksPolished <- vector("list", length = length(peaks))
   dim(peaksPolished) <- c(length(peaks), 1)
   
@@ -216,57 +230,57 @@ CNproScanCNV <- function(coveragefile,bamFile,fastaFile,...,cores=2,GCnorm=FALSE
     
     
     if (avg_cov_peak <= averageCoverage) {
-      #DELETIONS \/
+      #DELETIONS \/ -> SKIP
       #SLOPE \ peak start
       count1 <- 0
       trigger1 <- 0
-      while (trigger1 < 5) {
-        if (start <= 1 | (start - count1 * step - step) <= 1)
-        {
-          break
-        }
-        else
-        {
-          vektor <- coverageSignal[(start - count1 * step - step):(start - count1 * step)]
-          # mod_vektor <- mode(vektor) #matlab
-          mod_vektor <- sort(table(vektor), decreasing = TRUE)[1]
-        }
-        if (any(vektor == 0)) {
-          break
-        } #if zero in vector, ends - cause zero coverage
-        
-        count1 <- count1 + 1
-        if (mod_vektor >= avg_cov_peak)
-        {
-          trigger1 <- trigger1 + 1
-        }
-      }
+      # while (trigger1 < TRIGGER) {
+      #   if (start <= 1 | (start - count1 * step - step) <= 1)
+      #   {
+      #     break
+      #   }
+      #   else
+      #   {
+      #     vektor <- coverageSignal[(start - count1 * step - step):(start - count1 * step)]
+      #     # mod_vektor <- mode(vektor) #matlab
+      #     mod_vektor <- sort(table(vektor), decreasing = FALSE)[1]
+      #   }
+      #   if (any(vektor == 0)) {
+      #     break
+      #   } #if zero in vector, ends - cause zero coverage
+      #   
+      #   count1 <- count1 + 1
+      #   if (mod_vektor >= avg_cov_peak)
+      #   {
+      #     trigger1 <- trigger1 + 1
+      #   }
+      # }
       # SLOPE / peak stop
       count2 <- 0
       trigger2 <- 0
-      while (trigger2 < 5) {
-        if (stop >= length(coverageSignal) |
-            (stop + count2 * step + step) >= length(coverageSignal))
-        {
-          break
-        }
-        else{
-          vektor <- coverageSignal[(stop + count2 * step):(stop + count2 * step + step)]
-          
-          # mod_vektor <- mode(vektor); #matlab
-          mod_vektor <- sort(table(vektor), decreasing = TRUE)[1]
-        }
-        
-        if (any(vektor == 0)) {
-          break
-        } #if zero in vector, ends - cause zero coverage
-        
-        count2 <- count2 + 1
-        if (mod_vektor >= avg_cov_peak)
-        {
-          trigger2 <- trigger2 + 1
-        }
-      }
+      # while (trigger2 < TRIGGER) {
+      #   if (stop >= length(coverageSignal) |
+      #       (stop + count2 * step + step) >= length(coverageSignal))
+      #   {
+      #     break
+      #   }
+      #   else{
+      #     vektor <- coverageSignal[(stop + count2 * step):(stop + count2 * step + step)]
+      #     
+      #     # mod_vektor <- mode(vektor); #matlab
+      #     mod_vektor <- sort(table(vektor), decreasing = FALSE)[1]
+      #   }
+      #   
+      #   if (any(vektor == 0)) {
+      #     break
+      #   } #if zero in vector, ends - cause zero coverage
+      #   
+      #   count2 <- count2 + 1
+      #   if (mod_vektor >= avg_cov_peak)
+      #   {
+      #     trigger2 <- trigger2 + 1
+      #   }
+      # }
       
       # writing the extended CNV
       vektor1 <-( start - count1 * step):(start - 1)
@@ -283,7 +297,7 @@ CNproScanCNV <- function(coveragefile,bamFile,fastaFile,...,cores=2,GCnorm=FALSE
       #SLOPE UPWARDS peak start /
       count1 <- 0
       trigger1 <- 0
-      while (trigger1 < 5) {
+      while (trigger1 < TRIGGER) {
         if (start <= 1 | (start - count1 * step - step) <= 1)
         {
           break
@@ -309,7 +323,7 @@ CNproScanCNV <- function(coveragefile,bamFile,fastaFile,...,cores=2,GCnorm=FALSE
       # SLOPE DOWNWARDS peak stop \
       count2 <- 0
       trigger2 <- 0
-      while (trigger2 < 5) {
+      while (trigger2 < TRIGGER) {
         if (stop >= length(coverageSignal) |
             (stop + count2 * step + step) >= length(coverageSignal))
         {
@@ -348,9 +362,8 @@ CNproScanCNV <- function(coveragefile,bamFile,fastaFile,...,cores=2,GCnorm=FALSE
     }
   }
   
-  
   ################################################################################
-  ## SAVE DUPLICATIONS into dataframe
+  ## SAVE CNV EVENTS into dataframe
   # coverage$isCNV <- FALSE
   DUP_DF <- data.frame(ID=as.character(),START=integer(),END=integer(),LENGTH=integer(),COVERAGE=integer(),TYPE=character())
   
@@ -375,6 +388,9 @@ CNproScanCNV <- function(coveragefile,bamFile,fastaFile,...,cores=2,GCnorm=FALSE
   CNV_DF <- rbind(DEL_DF,DUP_DF)
   # DELETE SINGLE BASE EVENTS
   CNV_DF <- subset(CNV_DF, LENGTH>=1)
+  # CHECK FOR CNV < averageCoverage - those are deletions
+  CNV_DF[CNV_DF$COVERAGE<averageCoverage,"TYPE"]<-"DEL"
+  # R GARBAGE COLLECTOR
   gc()
   
   ################################################################################
