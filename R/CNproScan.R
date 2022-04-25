@@ -111,12 +111,12 @@ CNproScanCNV <- function(coveragefile,bamFile,fastaFile,cores=2){
     DEL_DF <- data.frame(ID=as.character(),START=integer(),END=integer(),LENGTH=integer(),COVERAGE=integer(),TYPE=character())
     start <-  idxDEL[1]
     stop <- idxDEL[length(idxDEL)]
-    DEL_DF[i,"ID"] <- 1
-    DEL_DF[i,"START"] <- start
-    DEL_DF[i,"END"] <- stop
-    DEL_DF[i,"LENGTH"] <- (stop - start)
-    DEL_DF[i,"COVERAGE"] <- mean(coverage$COVERAGE[start:stop])
-    DEL_DF[i,"TYPE"] <- "DEL"
+    DEL_DF[1,"ID"] <- 1
+    DEL_DF[1,"START"] <- start
+    DEL_DF[1,"END"] <- stop
+    DEL_DF[1,"LENGTH"] <- (stop - start)
+    DEL_DF[1,"COVERAGE"] <- mean(coverage$COVERAGE[start:stop])
+    DEL_DF[1,"TYPE"] <- "DEL"
   }
   ################################################################################
   ## CNV EVENTS

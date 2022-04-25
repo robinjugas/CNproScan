@@ -3,6 +3,7 @@ CNproScan is R package developed for CNV detection in bacterial genomes. It empl
 The package is still in development. Namely, the normalization part of package is still in development. 
 The Matlab version is here: https://github.com/robinjugas/CNproScanMatlab
 
+
 ## Dependencies:
 Package was tested on R 4.1.0 with several dependencies: parallel, foreach, doParallel, seqinr, Rsamtools, GenomicRanges, IRanges. 
 
@@ -33,14 +34,14 @@ samtools index file.bam
 samtools depth -a file.bam > file.coverage
 ```
 
-<li>genome mappability file - obtained by GENMAP (https://github.com/cpockrandt/genmap) </li>
+<li>genome mappability file - obtained by GENMAP (https://github.com/cpockrandt/genmap) - only for mappability normalization </li>
 
 ```
 genmap index -F reference.fasta -I mapp_index
 genmap map -K 30 -E 2 -I mapp_index -O mapp_genmap -t -w -bg
 ```
 
-<li>oriC position - use DoriC database (http://tubic.org/doric/public/index.php/search)</li>
+<li>oriC position - use DoriC database (http://tubic.org/doric/public/index.php/search) - only for replication origin normalization</li>
 </ol>
 
 ## Usage:
@@ -63,3 +64,10 @@ dataframe containing the detected CNVs
 <li>normalization of read-depth</li>
 <li>VCF output</li>
 </ul>
+
+## Citation:
+Robin Jugas, Karel Sedlar, Martin Vitek, Marketa Nykrynova, Vojtech Barton, Matej Bezdicek, Martina Lengerova, Helena Skutkova,
+CNproScan: Hybrid CNV detection for bacterial genomes,
+Genomics, Volume 113, Issue 5, 2021, Pages 3103-3111, ISSN 0888-7543,
+https://doi.org/10.1016/j.ygeno.2021.06.040.
+(https://www.sciencedirect.com/science/article/pii/S0888754321002779)
