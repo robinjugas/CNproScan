@@ -1,7 +1,7 @@
 #' CNproScan - CNV detection for bacteria
 #' This function detects and annotate CNVs in bacterial genomes. It uses GESD outliers detection 
 #' and detection of discordant read-pairs for annotation. 
-#' Last Update: 5/10/2021
+#' Last Update: April 2022
 #' 
 #' @importFrom parallel splitIndices makeCluster stopCluster
 #' @importFrom foreach foreach "%dopar%"
@@ -14,9 +14,19 @@
 #' @return A vector of outliers indices from input
 #' @export
 #' 
-CNproScanCNV <- function(coveragefile,bamFile,fastaFile,cores=2){
+CNproScanCNV <- function(coveragefile,bamFile,fastaFile,GCnorm=TRUE,MAPnorm=FALSE,bedgraphFile=NULL,cores=2){
   ################################################################################
   
+  # CHECK INPUTS
+  stopifnot("`coveragefile` must be a character." = is.character(coveragefile))
+  stopifnot("`bamFile` must be a character." = is.character(bamFile))
+  stopifnot("`fastaFile` must be a character." = is.character(fastaFile))
+  
+  stopifnot("`coveragefile` file does not exist or is not a valid file." = file.exists(coveragefile))
+  stopifnot("`bamFile` file does not exist or is not a valid file." = file.exists(bamFile))
+  stopifnot("`fastaFile` file does not exist or is not a valid file." = file.exists(fastaFile))
+  
+  ################################################################################
   # CONSTANT PARAMETERS
   peakDistanceThreshold<-20
   step<-11
@@ -36,6 +46,17 @@ CNproScanCNV <- function(coveragefile,bamFile,fastaFile,cores=2){
   referenceLength<-seqinr::getLength(seqinr::read.fasta(fastaFile,seqonly = TRUE))
   
   ################################################################################
+  ##  GC normalization
+  if(GCnorm==TRUE){coverage$COVERAGE <- GCnormalization(coverage$COVERAGE,fastaFile)}
+  ################################################################################
+  ##  MAPPABILITY normalization
+  if(MAPnorm==TRUE & file.exists(bedgraphFile)){coverage$COVERAGE <- MAPPABILITYnormalization(coverage$COVERAGE, bedgraphFile)}
+  
+  ################################################################################
+  ##  oriC normalization
+  # coverageORI   <- ORICnormalization(coverage, oriC_position=517)
+  
+    ################################################################################
   ## DELETING crossovers at the start and at the end and replace them by mean of whole coverage
   cutoff <- 500
   coverage$COVERAGE[1:cutoff] <- rep(mean(coverage$COVERAGE), times=length(coverage$COVERAGE[1:cutoff] ))
@@ -43,7 +64,7 @@ CNproScanCNV <- function(coveragefile,bamFile,fastaFile,cores=2){
   coverage$COVERAGE[(end-cutoff):end] <- rep(mean(coverage$COVERAGE), times=length(coverage$COVERAGE[(end-cutoff):end] ))
   
   ################################################################################
-  ## ZERO COVERAGE -> DELETIONS, 
+  ## ZERO COVERAGE -> DELETIONS 
   deletions<-which(coverage$COVERAGE==0)
   
   ################################################################################
@@ -571,20 +592,20 @@ CNproScanCNV <- function(coveragefile,bamFile,fastaFile,cores=2){
     reads_count_INTERDUP_DIR <- reads_count_INTERDUP_DIR2 + reads_count_INTERDUP_DIR1
     
     # #print absolute numbers
-    # CNV_DF[i,"reads_TOTAL"] <- reads_TOTAL
-    # CNV_DF[i,"reads_INSERT_INCREASE"] <- reads_count_INCREASE
-    # CNV_DF[i,"reads_INSERT_DECREASE"] <- reads_count_DECREASE
-    # CNV_DF[i,"reads_count_TAD_DUP"] <- reads_count_TD
-    # CNV_DF[i,"reads_count_INTER_DUP_DIR"] <- reads_count_INTERDUP_DIR
-    # CNV_DF[i,"reads_count_INTER_DUP_INV"] <- reads_count_INTERDUP_INV
-    
-    #print percents
     CNV_DF[i,"reads_TOTAL"] <- reads_TOTAL
-    CNV_DF[i,"reads_INSERT_INCREASE"] <- reads_count_INCREASE/(reads_TOTAL/100)
-    CNV_DF[i,"reads_INSERT_DECREASE"] <- reads_count_DECREASE/(reads_TOTAL/100)
-    CNV_DF[i,"reads_count_TAD_DUP"] <- reads_count_TD/(reads_TOTAL/100)
-    CNV_DF[i,"reads_count_INTER_DUP_DIR"] <- reads_count_INTERDUP_DIR/(reads_TOTAL/100)
-    CNV_DF[i,"reads_count_INTER_DUP_INV"] <- reads_count_INTERDUP_INV/(reads_TOTAL/100)
+    CNV_DF[i,"reads_INSERT_INCREASE"] <- reads_count_INCREASE
+    CNV_DF[i,"reads_INSERT_DECREASE"] <- reads_count_DECREASE
+    CNV_DF[i,"reads_count_TAD_DUP"] <- reads_count_TD
+    CNV_DF[i,"reads_count_INTER_DUP_DIR"] <- reads_count_INTERDUP_DIR
+    CNV_DF[i,"reads_count_INTER_DUP_INV"] <- reads_count_INTERDUP_INV
+    
+    #print Percentages
+    # CNV_DF[i,"reads_TOTAL"] <- reads_TOTAL
+    # CNV_DF[i,"reads_INSERT_INCREASE"] <- reads_count_INCREASE/(reads_TOTAL/100)
+    # CNV_DF[i,"reads_INSERT_DECREASE"] <- reads_count_DECREASE/(reads_TOTAL/100)
+    # CNV_DF[i,"reads_count_TAD_DUP"] <- reads_count_TD/(reads_TOTAL/100)
+    # CNV_DF[i,"reads_count_INTER_DUP_DIR"] <- reads_count_INTERDUP_DIR/(reads_TOTAL/100)
+    # CNV_DF[i,"reads_count_INTER_DUP_INV"] <- reads_count_INTERDUP_INV/(reads_TOTAL/100)
     
     #TYPE SELECTION
     if(CNV_DF[i,"TYPE"] == "DEL"){CNV_DF[i,"SUBTYPE"] <- "DEL"}
@@ -594,6 +615,8 @@ CNproScanCNV <- function(coveragefile,bamFile,fastaFile,cores=2){
     
   }
   
+  writeVCF(CNV_DF,refHeader)
+    
   return(CNV_DF)
   
 }

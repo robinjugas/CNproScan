@@ -5,9 +5,17 @@
 \title{CNproScan - CNV detection for bacteria
 This function detects and annotate CNVs in bacterial genomes. It uses GESD outliers detection
 and detection of discordant read-pairs for annotation.
-Last Update: 5/10/2021}
+Last Update: April 2022}
 \usage{
-CNproScanCNV(coveragefile, bamFile, fastaFile, cores = 2)
+CNproScanCNV(
+  coveragefile,
+  bamFile,
+  fastaFile,
+  GCnorm = TRUE,
+  MAPnorm = FALSE,
+  bedgraphFile = NULL,
+  cores = 2
+)
 }
 \arguments{
 \item{infile}{Path to the input file}
@@ -19,5 +27,5 @@ A vector of outliers indices from input
 CNproScan - CNV detection for bacteria
 This function detects and annotate CNVs in bacterial genomes. It uses GESD outliers detection
 and detection of discordant read-pairs for annotation.
-Last Update: 5/10/2021
+Last Update: April 2022
 }
