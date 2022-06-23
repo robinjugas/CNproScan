@@ -22,10 +22,19 @@ CNproScanCNV <- function(coveragefile,bamFile,fastaFile,GCnorm=TRUE,MAPnorm=FALS
   stopifnot("`bamFile` must be a character." = is.character(bamFile))
   stopifnot("`fastaFile` must be a character." = is.character(fastaFile))
   
+  if (MAPnorm==TRUE & is.null(bedgraphFile)){
+    stop("`bedgraphFile` must be specified if MAPnorm=TRUE.")
+  }
+  if(is.null(bedgraphFile)){bedgraphFile<-""}
+  
+  if (MAPnorm==TRUE & !file.exists(bedgraphFile)){
+    stop("`bedgraphFile` file does not exist or is not a valid file.")
+  }
+  
   stopifnot("`coveragefile` file does not exist or is not a valid file." = file.exists(coveragefile))
   stopifnot("`bamFile` file does not exist or is not a valid file." = file.exists(bamFile))
   stopifnot("`fastaFile` file does not exist or is not a valid file." = file.exists(fastaFile))
-  
+
   ################################################################################
   # CONSTANT PARAMETERS
   peakDistanceThreshold<-20

@@ -7,7 +7,7 @@ Function to reformat CNV dataframe to VCF formated dataframe to write down
 Inputs: detected CNV dataframe
 Output: VCF file}
 \usage{
-writeVCF(CNV_DF)
+writeVCF(CNV_DF, chromosome_name)
 }
 \arguments{
 \item{infile}{CNV dataframe}
