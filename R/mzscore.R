@@ -2,17 +2,19 @@
 #' This function loads a vector of coverage/read-depth values. It returns the indices of potential outliers. 
 #' See https://www.itl.nist.gov/div898/handbook/eda/section3/eda35h.htm
 #' 
-#' @param infile Path to the input file
-#' @return A vector of outliers indices from input
+#' @param coverageVector Vector of coverage values, 3rd column of coverage DATAFRAME
+#' @return A vector of outliers indices
 #' @export
-mzscore <- function(x) {
-  medianX = median(x)
-  MAD = median(abs(x - medianX))
+#' @noRd
+#' 
+mzscore <- function(coverageVector) {
+  medianX <- median(coverageVector)
+  MAD <- median(abs(coverageVector - medianX))
   M <- c()
-  for (i in 1:length(x)) {
-    M[i] <- 0.6745 * abs(x[i] - medianX) / MAD
+  for (i in 1:length(coverageVector)) {
+    M[i] <- 0.6745 * abs(coverageVector[i] - medianX) / MAD
   }
   idx <- which(M > 3.5)
-  outliers <- x[idx]
+  outliers <- coverageVector[idx]
   return(outliers)
 }

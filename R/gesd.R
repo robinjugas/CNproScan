@@ -5,13 +5,15 @@
 #' It returns outliers indices as vector
 #' See https://www.itl.nist.gov/div898/handbook/eda/section3/eda35h3.htm
 #' 
-#' @param infile Path to the input file
+#' @param coverageDF dataframe of coverage, 3 columns CHROM POS COVERAGE
+#' @param estimatedOutliers Number of potential outliers from M-Zscore function
 #' @return A vector of outliers indices from input
 #' @export
+#' @noRd
 #' 
 gesd <- function(coverageDF, estimatedOutliers) {
   # COMPUTATION
-  coverageSignal <- coverageDF[, 2]
+  coverageSignal <- coverageDF$COVERAGE
   alpha <- 0.05
   R <- replicate(estimatedOutliers, 0)
   Lambda <-  replicate(estimatedOutliers, 0)
@@ -57,7 +59,7 @@ gesd <- function(coverageDF, estimatedOutliers) {
   if (outliersNumber > 0) {
     coverageDF$isOutlier <- FALSE
     coverageDF$isOutlier[idx] <- TRUE
-    return(as.vector(coverageDF[idx,1]))
+    return(as.vector(coverageDF$POS[idx]))
   } else {
     return()
     warning("No outliers found")

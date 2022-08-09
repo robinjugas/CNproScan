@@ -2,13 +2,12 @@
 % Please edit documentation in R/CNproScan.R
 \name{CNproScanCNV}
 \alias{CNproScanCNV}
-\title{CNproScan - CNV detection for bacteria
+\title{CNproScan - CNV detection for bacteria genomes
 This function detects and annotate CNVs in bacterial genomes. It uses GESD outliers detection
-and detection of discordant read-pairs for annotation.
-Last Update: April 2022}
+and detection of discordant read-pairs for annotation.}
 \usage{
 CNproScanCNV(
-  coveragefile,
+  coverageFile,
   bamFile,
   fastaFile,
   GCnorm = TRUE,
@@ -18,14 +17,25 @@ CNproScanCNV(
 )
 }
 \arguments{
-\item{infile}{Path to the input file}
+\item{coverageFile}{Path to the coverage file given from samtools depth. Zeroe values must be included, use -a switch "samtools depth -a".}
+
+\item{bamFile}{Path to the BAM file, sorted and indexed.}
+
+\item{fastaFile}{Path to the reference FASTA file used to align sequencing reads. The headers should be the same through all input files (FASTA, BAM and COVERAGE files).}
+
+\item{GCnorm}{Should the GC normalization be performed. Logical value.  Default is TRUE.}
+
+\item{MAPnorm}{Should the genome mappability normalization be performed. Default is FALSE. If TRUE, the argument bedgraphFile must be specified.}
+
+\item{bedgraphFile}{Path to the bedgraph file outputed from genmap tool.}
+
+\item{cores}{number of cores to be used by parallel package. Default is two. Decreases computation time with limited impact on RAM usage.}
 }
 \value{
-A vector of outliers indices from input
+A dataframe of detected CNVs and VCF file name as sample_cnproscan.vcf in the working directory.
 }
 \description{
-CNproScan - CNV detection for bacteria
+CNproScan - CNV detection for bacteria genomes
 This function detects and annotate CNVs in bacterial genomes. It uses GESD outliers detection
 and detection of discordant read-pairs for annotation.
-Last Update: April 2022
 }

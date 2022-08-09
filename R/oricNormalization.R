@@ -1,14 +1,13 @@
 #' REPLICATION ORIGIN BIAS normalization
 #' This function normalizes the replication origin bias. 
-#' Inputs: coverage dataframe (1st col POS, 2nd col CCOVERAGE), position of replication origin in reference
-#' Output: vector of modified COVERAGE values
 #' 
 #' @importFrom mgcv gam predict.gam
-#' @param infile Path to the input file
-#' @return A vector of new coverage values
-#' @export
+#' @param coverage dataframe of coverage, 3 columns CHROM POS COVERAGE
+#' @param oriC_position position of oriC in the reference genome
+#' @return A vector of normalized coverage values
+#' @noRd
 #' 
-ORICnormalization <- function(coverage, oriC_position=1){
+oricNormalization <- function(coverage, oriC_position=1){
   ## 
   referenceLength <- length(coverage)
   coverage_new <- rep(0, times=referenceLength)

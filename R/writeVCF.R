@@ -1,38 +1,46 @@
-#' Write VCF file
+#' Write VCF file from CNproScan dataframe
 #' Function to reformat CNV dataframe to VCF formated dataframe to write down
 #' Inputs: detected CNV dataframe 
 #' Output: VCF file
 #' 
-#' @param infile CNV dataframe
+#' @param CNV_DF CNV dataframe
+#' @param sampleName name to name the VCF file
 #' @return VCF dataframe ready to write to disk
 #' @export
+#' @noRd
 #' 
-writeVCF <- function(CNV_DF,chromosome_name){
-  ## 
-  VCF_tab <- data.frame(CHROM=character(),POS=character(),ID=character(),REF=character(),ALT=character(),QUAL=character(),FILTER=character(),INFO=character(),FORMAT=character(),SAMPLE=character())
+writeVCF <- function(CNV_DF,sampleName){
+
+  VCF_tab <- data.frame(CHROM=character(), POS=character(), ID=character(), REF=character(), ALT=character(), QUAL=character(),
+                        FILTER=character(), INFO=character(), FORMAT=character(), SAMPLE=character())
   
   # write VCFheader
-  vcf_header <- read.delim(system.file('extdata', "CNproscan_vcf_header.txt", package = 'CNproScan'))
-  for(i in 1:nrow(vcf_header)){ write(vcf_header[[1]][i], file="cnproscan.vcf",append=TRUE) }
-  header <- paste("CHROM","ID","REF","ALT","QUAL","FILTER","INFO","FORMAT","SAMPLE",sep="\t")
-  write(header, file="cnproscan.vcf",append=TRUE)
+  vcf_header <- read.delim(system.file('extdata', "CNproscan_vcf_header.txt", package='CNproScan'))
   
+  file.create(sprintf("%s_cnproscan.vcf", sampleName), overwrite=TRUE)
+  
+  for(i in 1:nrow(vcf_header)){ 
+    write(vcf_header[[1]][i],  file=sprintf("%s_cnproscan.vcf",sampleName), append=TRUE)
+  }
+  
+  header <- paste("CHROM", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "SAMPLE", sep="\t")
+  write(header, file=sprintf("%s_cnproscan.vcf", sampleName), append=TRUE)
   
   for(i in 1:nrow(CNV_DF)){
-    VCF_tab[i,"CHROM"] <- chromosome_name # chromosome
-    VCF_tab[i,"POS"] <- CNV_DF[i,"START"] #start
-    VCF_tab[i,"ID"] <- i # some ID, number of CNV
-    VCF_tab[i,"REF"] <- "N" #lumpy inspired
-    VCF_tab[i,"ALT"] <- paste0("<",CNV_DF[i,"TYPE"],">") #lumpy inspired
-    VCF_tab[i,"QUAL"] <- "." #lumpy inspired
-    VCF_tab[i,"FILTER"] <- "." #lumpy inspired
+    VCF_tab[i, "CHROM"] <- CNV_DF[i,"CHROM"] # chromosome
+    VCF_tab[i, "POS"] <- CNV_DF[i,"START"] #start
+    VCF_tab[i, "ID"] <- i # some ID, number of CNV
+    VCF_tab[i, "REF"] <- "N" #lumpy inspired
+    VCF_tab[i, "ALT"] <- paste0("<",CNV_DF[i,"TYPE"],">") #lumpy inspired
+    VCF_tab[i, "QUAL"] <- "." #lumpy inspired
+    VCF_tab[i, "FILTER"] <- "." #lumpy inspired
     
-    VCF_tab[i,"INFO"] <- paste(paste0("SVTYPE=",CNV_DF[i,"TYPE"]),paste0("SVLEN=",CNV_DF[i,"LENGTH"]),paste0("SVSUBTYPE=",CNV_DF[i,"SUBTYPE"]),sep=";")
-    VCF_tab[i,"FORMAT"] <- "."
-    VCF_tab[i,"SAMPLE"] <- "."
+    VCF_tab[i, "INFO"] <- paste(paste0("SVTYPE=",CNV_DF[i,"TYPE"]),paste0("SVLEN=",CNV_DF[i,"LENGTH"]),paste0("SVSUBTYPE=",CNV_DF[i,"SUBTYPE"]),sep=";")
+    VCF_tab[i, "FORMAT"] <- "."
+    VCF_tab[i, "SAMPLE"] <- "."
     
     temp <- do.call(paste, c(VCF_tab[c(1:ncol(VCF_tab))], sep="\t"))
-    write(temp, file="cnproscan.vcf",append=TRUE)
+    write(temp, file=sprintf("%s_cnproscan.vcf", sampleName), append=TRUE)
   }
 
 }
