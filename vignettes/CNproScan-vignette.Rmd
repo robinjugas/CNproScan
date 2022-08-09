@@ -1,0 +1,99 @@
+---
+title: "CNproScan Vignette"
+author: "Robin Jugas"
+date: "08/08/2022"
+output:
+  pdf_document:
+    toc: true
+    toc_depth: 3
+  html_document:
+    toc: true
+    toc_depth: 2
+vignette: |
+  %\VignetteEngine{knitr::rmarkdown} %\VignetteIndexEntry{CNproScan Vignette} %\VignetteEncoding{UTF-8}
+---
+
+# CNproScan Vignette
+
+  **CNproScan** is R package developed for CNV detection in bacterial genomes. It employs Generalized Extreme Studentized Deviate test for outliers to detect CNVs in read-depth data with discordant reads detection to annotate the CNVs. It was tested and proven to be able to detect short CNVs. Following text is a workflow showcase. The **CNproScan** consist of a single function *CNproScanCNV* which carries the whole procedure. The steps necessary to get input files is also explained at the GitHub repository. 
+
+## 1. Website and issues
+
+  CNproScan github repository and issues reporting: https://github.com/robinjugas/CNproScan
+  
+
+## 2. CNproScan workflow
+
+### 2.1 Install CNproScan
+  
+  Install `CNproScan` from Bioconductor:
+
+```r
+## try http:// if https:// URLs are not supported
+source("https://bioconductor.org/biocLite.R")
+biocLite("CNproScan")
+```
+  
+  or install the most current release from Github:
+
+```r
+install.packages("devtools")
+library(devtools)
+install_github("robinjugas/CNproScan")
+```
+
+### 2.2 Reads alignment and coverage calculation
+
+  Apply the following steps to get the files needed to CNV detection. 
+
+```{r Prepare_Files, engine = 'bash', eval = FALSE}
+# Prerequest: reference fasta file, samtools, bwa aligner
+# Alignment
+bwa index -a is reference.fasta
+samtools faidx reference.fasta
+bwa mem reference.fasta read1.fq read2.fq > file.sam
+# BAM processing
+samtools view -b -F 4 file.sam > file.bam # mapped reads only
+samtools sort -o file.bam file1.bam
+samtools index file.bam
+# Calculate coverage with zero coverage reported
+samtools depth -a file.bam > file.coverage
+# Genome mappability file by GENMAP (https://github.com/cpockrandt/genmap) 
+# only for mappability normalization
+genmap index -F reference.fasta -I mapp_index
+genmap map -K 30 -E 2 -I mapp_index -O mapp_genmap -t -w -bg
+```
+
+### 2.3 CNV detection
+
+```{r CNV_Dtection, message=FALSE,results='hide',warning=FALSE,eval = FALSE}
+library("CNproScan")
+# Working directory with files
+setwd("workdir")
+# File paths
+fasta_file <- "reference.fasta"
+bam_file <- "file.bam"
+coverage_file <- "file.coverage"
+bedgraph_file <- "mapp_genmap.bedgraph"
+
+# For only GC normalization
+DF <- CNproScanCNV(coverage_file, bam_file, fasta_file, 
+                   GCnorm=TRUE, MAPnorm=FALSE, cores=4)
+# Without any normalization
+DF <- CNproScanCNV(coverage_file, bam_file, fasta_file, 
+                   GCnorm=FALSE, MAPnorm=FALSE, cores=4)
+# Both GC normalization and mappability normalization
+DF <- CNproScanCNV(coverage_file, bam_file, fasta_file, 
+                   GCnorm=TRUE, MAPnorm=TRUE, bedgraph_file, cores=4)
+
+```
+
+### 2.4 The output of CNproScanCNV
+
+The output is a data.frame object with several descriptive columns. Also, the VCF file is written into the working directory. 
+
+
+## 3. Session information
+```{r}
+sessionInfo()
+```

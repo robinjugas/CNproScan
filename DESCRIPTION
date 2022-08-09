@@ -1,6 +1,6 @@
 Package: CNproScan
 Title: CNproScan detects and annotates CNVs in bacterial genomes. 
-Version: 0.0.1.0
+Version: 0.99.1.0
 Authors@R: 
     person(given = "Robin",
            family = "Jugas",
@@ -12,7 +12,6 @@ Description: CNproScan applies Generalized Extreme Studentized Deviate to detect
   See https://github.com/robinjugas/CNproScan
 License: `use_mit_license()`
 Encoding: UTF-8
-LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.1
 Imports:
@@ -22,3 +21,7 @@ Imports:
 	seqinr,
 	Rsamtools,
 	GenomicRanges
+biocViews: CopyNumberVariation, WholeGenome
+BugReports: https://github.com/robinjugas/CNproScan/issues
+URL: https://github.com/robinjugas/CNproScan/
+BiocType: Software
