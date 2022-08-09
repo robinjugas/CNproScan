@@ -46,21 +46,43 @@ genmap map -K 30 -E 2 -I mapp_index -O mapp_genmap -t -w -bg
 ## Usage:
 R script:
 ```
-CNproScanCNV(coverage_file, bam_file, fasta_file,number of threads)
-CNproScanCNV(coverageFile,bamFile,fastaFile,GCnorm=TRUE,MAPnorm=FALSE,cores=12)
+library("CNproScan")
+# Working directory with files
+setwd("workdir")
+# File paths
+fasta_file <- "reference.fasta"
+bam_file <- "file.bam"
+coverage_file <- "file.coverage"
+bedgraph_file <- "mapp_genmap.bedgraph"
+
+# For only GC normalization
+DF <- CNproScanCNV(coverage_file, bam_file, fasta_file, 
+                   GCnorm=TRUE, MAPnorm=FALSE, cores=4)
+# Without any normalization
+DF <- CNproScanCNV(coverage_file, bam_file, fasta_file, 
+                   GCnorm=FALSE, MAPnorm=FALSE, cores=4)
+# Both GC normalization and mappability normalization
+DF <- CNproScanCNV(coverage_file, bam_file, fasta_file, 
+                   GCnorm=TRUE, MAPnorm=TRUE, bedgraph_file, cores=4)
+
 ```
-Inputs:
-coverageFile = path to the .coverage file
-bamFile = path to the .bam file
-fastaFile = path to the .fasta file
-GCnorm = TRUE/FALSE whether to do GC bias normalization
-MAPnorm = TRUE/FALSE whether to do mappability normalization
-cores = number of threads for foreach %dopar%. Recommended default = 4, or more. Tested on 6,8 and 12 cores.  
 
-Outputs:
-dataframe containing the detected CNVs
-VCF file named sample_cnproscan.vcf in the working directory. 
+## Inputs description:
+<ul>
+<li>coverage_file = path to the .coverage file </li>
+<li>bam_file = path to the .bam file </li>
+<li>fasta_file = path to the .fasta file </li> 
+<li>GCnorm = TRUE/FALSE whether to do GC bias normalization </li>
+<li>MAPnorm = TRUE/FALSE whether to do mappability normalization </li>
+<li> bedgraph_file = path to the bedgraph file outputed from genmap tool. </li>
+<li>cores = number of threads for foreach %dopar%. Recommended default = 4, or more. Tested on 6,8 and 12 cores.  </li>
+</ul>
 
+## Outputs:
+<ul>
+<li>dataframe containing the detected CNVs </li>
+<li>VCF file named sample_cnproscan.vcf in the working directory </li>
+</ul>
 
 ## In development - will be added:
 <ul>
