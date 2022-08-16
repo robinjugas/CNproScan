@@ -32,9 +32,9 @@ writeVCF <- function(CNV_DF,fileName){
     VCF_tab[i, "REF"] <- "N" #lumpy inspired
     VCF_tab[i, "ALT"] <- paste0("<",CNV_DF[i,"TYPE"],">") #lumpy inspired
     VCF_tab[i, "QUAL"] <- "." #lumpy inspired
-    VCF_tab[i, "FILTER"] <- "." #lumpy inspired
+    VCF_tab[i, "FILTER"] <- "PASS" #cnvnator inspired
     
-    VCF_tab[i, "INFO"] <- paste(paste0("SVTYPE=",CNV_DF[i,"TYPE"]),paste0("SVLEN=",CNV_DF[i,"LENGTH"]),paste0("SVSUBTYPE=",CNV_DF[i,"SUBTYPE"]),sep=";")
+    VCF_tab[i, "INFO"] <- paste(paste0("END=",CNV_DF[i,"END"],"SVTYPE=",CNV_DF[i,"TYPE"]),paste0("SVLEN=",CNV_DF[i,"LENGTH"]),paste0("SVSUBTYPE=",CNV_DF[i,"SUBTYPE"]),sep=";")
     VCF_tab[i, "FORMAT"] <- "."
     VCF_tab[i, "SAMPLE"] <- "."
     
