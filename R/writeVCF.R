@@ -19,7 +19,7 @@ writeVCF <- function(CNV_DF,fileName){
   file.create(fileName, overwrite=TRUE)
   
   for(i in 1:nrow(vcf_header)){ 
-    write(vcf_header[[1]][i],  file=sprintf("%s_cnproscan.vcf",fileName), append=TRUE)
+    write(vcf_header[[1]][i],  file=fileName, append=TRUE)
   }
   
   header <- paste("CHROM", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "SAMPLE", sep="\t")
