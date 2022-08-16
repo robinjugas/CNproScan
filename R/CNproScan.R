@@ -127,8 +127,8 @@ CNproScanCNV <- function(coverageFile,bamFile,fastaFile,GCnorm=TRUE,MAPnorm=FALS
     CNV_DF <- CNV_DF[, col_order]
     
     ## write VCF
-    sampleName <- strsplit(basename(coverageFile), "[.]")[[1]][1]
-    writeVCF(CNV_DF, sampleName)
+    # sampleName <- strsplit(basename(coverageFile), "[.]")[[1]][1]
+    # writeVCF(CNV_DF, sampleName)
   }
   
   ################################################################################
@@ -191,8 +191,8 @@ CNproScanCNV <- function(coverageFile,bamFile,fastaFile,GCnorm=TRUE,MAPnorm=FALS
     ## write VCF
     CNV_DF <- MERGED_CNV_DF
     CNV_DF <- CNV_DF[order(CNV_DF$CHROM, CNV_DF$START),]
-    sampleName <- strsplit(basename(coverageFile), "[.]")[[1]][1]
-    writeVCF(CNV_DF, sampleName)
+    # sampleName <- strsplit(basename(coverageFile), "[.]")[[1]][1]
+    # writeVCF(CNV_DF, sampleName)
   }
   
   

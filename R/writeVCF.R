@@ -4,12 +4,11 @@
 #' Output: VCF file
 #' 
 #' @param CNV_DF CNV dataframe
-#' @param sampleName name to name the VCF file
+#' @param fileName name of the VCF file
 #' @return VCF dataframe ready to write to disk
 #' @export
-#' @noRd
 #' 
-writeVCF <- function(CNV_DF,sampleName){
+writeVCF <- function(CNV_DF,fileName){
 
   VCF_tab <- data.frame(CHROM=character(), POS=character(), ID=character(), REF=character(), ALT=character(), QUAL=character(),
                         FILTER=character(), INFO=character(), FORMAT=character(), SAMPLE=character())
@@ -17,14 +16,14 @@ writeVCF <- function(CNV_DF,sampleName){
   # write VCFheader
   vcf_header <- read.delim(system.file('extdata', "CNproscan_vcf_header.txt", package='CNproScan'))
   
-  file.create(sprintf("%s_cnproscan.vcf", sampleName), overwrite=TRUE)
+  file.create(fileName, overwrite=TRUE)
   
   for(i in 1:nrow(vcf_header)){ 
-    write(vcf_header[[1]][i],  file=sprintf("%s_cnproscan.vcf",sampleName), append=TRUE)
+    write(vcf_header[[1]][i],  file=sprintf("%s_cnproscan.vcf",fileName), append=TRUE)
   }
   
   header <- paste("CHROM", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "SAMPLE", sep="\t")
-  write(header, file=sprintf("%s_cnproscan.vcf", sampleName), append=TRUE)
+  write(header, file=fileName, append=TRUE)
   
   for(i in 1:nrow(CNV_DF)){
     VCF_tab[i, "CHROM"] <- CNV_DF[i,"CHROM"] # chromosome
@@ -40,7 +39,7 @@ writeVCF <- function(CNV_DF,sampleName){
     VCF_tab[i, "SAMPLE"] <- "."
     
     temp <- do.call(paste, c(VCF_tab[c(1:ncol(VCF_tab))], sep="\t"))
-    write(temp, file=sprintf("%s_cnproscan.vcf", sampleName), append=TRUE)
+    write(temp, file=fileName, append=TRUE)
   }
 
 }
