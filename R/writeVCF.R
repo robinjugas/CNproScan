@@ -22,7 +22,7 @@ writeVCF <- function(CNV_DF,fileName){
     write(vcf_header[[1]][i],  file=fileName, append=TRUE)
   }
   
-  header <- paste("CHROM", "POS","ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "SAMPLE", sep="\t")
+  header <- paste("#CHROM", "POS","ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "SAMPLE", sep="\t")
   write(header, file=fileName, append=TRUE)
   
   for(i in 1:nrow(CNV_DF)){
