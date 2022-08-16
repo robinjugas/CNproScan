@@ -22,13 +22,13 @@ writeVCF <- function(CNV_DF,fileName){
     write(vcf_header[[1]][i],  file=fileName, append=TRUE)
   }
   
-  header <- paste("CHROM", "ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "SAMPLE", sep="\t")
+  header <- paste("CHROM", "POS","ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "SAMPLE", sep="\t")
   write(header, file=fileName, append=TRUE)
   
   for(i in 1:nrow(CNV_DF)){
     VCF_tab[i, "CHROM"] <- CNV_DF[i,"CHROM"] # chromosome
     VCF_tab[i, "POS"] <- CNV_DF[i,"START"] #start
-    VCF_tab[i, "ID"] <- i # some ID, number of CNV
+    VCF_tab[i, "ID"] <- paste0(i,"_cnproscan") # some ID, number of CNV
     VCF_tab[i, "REF"] <- "N" #lumpy inspired
     VCF_tab[i, "ALT"] <- paste0("<",CNV_DF[i,"TYPE"],">") #lumpy inspired
     VCF_tab[i, "QUAL"] <- "." #lumpy inspired
