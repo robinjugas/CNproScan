@@ -20,7 +20,8 @@ Imports:
 	doParallel,
 	seqinr,
 	Rsamtools,
-	GenomicRanges
+	GenomicRanges,
+  data.table
 biocViews: CopyNumberVariation, WholeGenome
 BugReports: https://github.com/robinjugas/CNproScan/issues
 URL: https://github.com/robinjugas/CNproScan/

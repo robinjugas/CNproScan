@@ -40,7 +40,7 @@ writeVCF <- function(CNV_DF,fileName){
     VCF_tab[i, "FORMAT"] <- "."
     VCF_tab[i, "SAMPLE"] <- "."
     
-    temp <- do.call(paste, c(VCF_tab[c(1:ncol(VCF_tab))], sep="\t"))
+    temp <- do.call(paste, c(VCF_tab[i, c(1:ncol(VCF_tab))], sep="\t"))
     write(temp, file=fileName, append=TRUE)
   }
 
