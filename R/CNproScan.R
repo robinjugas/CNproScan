@@ -190,8 +190,8 @@ CNproScanCNV <- function(coverageFile,bamFile,fastaFile,GCnorm=TRUE,MAPnorm=FALS
     }
     
     ## write VCF
-    CNV_DF <- MERGED_CNV_DF
-    CNV_DF <- data.table::unique(CNV_DF,by=c("CHROM","START","END","TYPE"))
+    CNV_DF <- as.data.table(MERGED_CNV_DF)
+    CNV_DF <- unique(CNV_DF,by=c("CHROM","START","END","TYPE"))
     CNV_DF <- CNV_DF[order(CNV_DF$CHROM, CNV_DF$START),]
     # sampleName <- strsplit(basename(coverageFile), "[.]")[[1]][1]
     # writeVCF(CNV_DF, sampleName)
