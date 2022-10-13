@@ -25,7 +25,7 @@ writeVCF <- function(CNV_DF,fileName){
   header <- paste("#CHROM", "POS","ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "SAMPLE", sep="\t")
   write(header, file=fileName, append=TRUE)
   
-  CNV_DF <- unique(CNV_DF)
+  # CNV_DF <- unique(CNV_DF,by=c("CHROM","START","END","TYPE"))
   
   for(i in 1:nrow(CNV_DF)){
     VCF_tab[i, "CHROM"] <- CNV_DF[i,"CHROM"] # chromosome
@@ -36,7 +36,7 @@ writeVCF <- function(CNV_DF,fileName){
     VCF_tab[i, "QUAL"] <- "." #lumpy inspired
     VCF_tab[i, "FILTER"] <- "PASS" #cnvnator inspired
     
-    VCF_tab[i, "INFO"] <- paste(paste0("END=",CNV_DF[i,"END"],"SVTYPE=",CNV_DF[i,"TYPE"]),paste0("SVLEN=",CNV_DF[i,"LENGTH"]),paste0("SVSUBTYPE=",CNV_DF[i,"SUBTYPE"]),sep=";")
+    VCF_tab[i, "INFO"] <- paste(paste0("END=",CNV_DF[i,"END"]),paste0("SVTYPE=",CNV_DF[i,"TYPE"]),paste0("SVLEN=",CNV_DF[i,"LENGTH"]),paste0("SVSUBTYPE=",CNV_DF[i,"SUBTYPE"]),sep=";")
     VCF_tab[i, "FORMAT"] <- "."
     VCF_tab[i, "SAMPLE"] <- "."
     
