@@ -4,7 +4,7 @@
 #' 
 #' @importFrom seqinr getLength read.fasta
 #' @importFrom Rsamtools scanBamFlag ScanBamParam scanBam
-#' @importFrom data.table unique
+#' @import data.table
 #' @param coverageFile Path to the coverage file given from samtools depth. Zeroe values must be included, use -a switch "samtools depth -a".
 #' @param bamFile Path to the BAM file, sorted and indexed. 
 #' @param fastaFile Path to the reference FASTA file used to align sequencing reads. The headers should be the same through all input files (FASTA, BAM and COVERAGE files). 
