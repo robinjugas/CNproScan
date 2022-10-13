@@ -4,6 +4,7 @@
 #' 
 #' @importFrom seqinr getLength read.fasta
 #' @importFrom Rsamtools scanBamFlag ScanBamParam scanBam
+#' @importFrom data.table unique
 #' @param coverageFile Path to the coverage file given from samtools depth. Zeroe values must be included, use -a switch "samtools depth -a".
 #' @param bamFile Path to the BAM file, sorted and indexed. 
 #' @param fastaFile Path to the reference FASTA file used to align sequencing reads. The headers should be the same through all input files (FASTA, BAM and COVERAGE files). 
@@ -190,7 +191,7 @@ CNproScanCNV <- function(coverageFile,bamFile,fastaFile,GCnorm=TRUE,MAPnorm=FALS
     
     ## write VCF
     CNV_DF <- MERGED_CNV_DF
-    CNV_DF <- unique(CNV_DF,by=c("CHROM","START","END","TYPE"))
+    CNV_DF <- data.table::unique(CNV_DF,by=c("CHROM","START","END","TYPE"))
     CNV_DF <- CNV_DF[order(CNV_DF$CHROM, CNV_DF$START),]
     # sampleName <- strsplit(basename(coverageFile), "[.]")[[1]][1]
     # writeVCF(CNV_DF, sampleName)
