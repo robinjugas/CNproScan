@@ -25,6 +25,8 @@ writeVCF <- function(CNV_DF,fileName){
   header <- paste("#CHROM", "POS","ID", "REF", "ALT", "QUAL", "FILTER", "INFO", "FORMAT", "SAMPLE", sep="\t")
   write(header, file=fileName, append=TRUE)
   
+  CNV_DF <- unique(CNV_DF)
+  
   for(i in 1:nrow(CNV_DF)){
     VCF_tab[i, "CHROM"] <- CNV_DF[i,"CHROM"] # chromosome
     VCF_tab[i, "POS"] <- CNV_DF[i,"START"] #start
