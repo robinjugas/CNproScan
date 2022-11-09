@@ -127,9 +127,12 @@ CNproScanCNV <- function(coverageFile,bamFile,fastaFile,GCnorm=TRUE,MAPnorm=FALS
     col_order <- c("ID", "CHROM", colnames(CNV_DF)[3:ncol(CNV_DF)-1])
     CNV_DF <- CNV_DF[, col_order]
     
-    ## write VCF
-    # sampleName <- strsplit(basename(coverageFile), "[.]")[[1]][1]
-    # writeVCF(CNV_DF, sampleName)
+    ## reformat and remove NAs CNVs
+    CNV_DF <- CNV_DF[!(is.na(CNV_DF$START)),] # remove NA CNVs
+    CNV_DF <- as.data.table(CNV_DF)
+    CNV_DF <- unique(CNV_DF,by=c("CHROM","START","END","TYPE"))
+    CNV_DF <- CNV_DF[order(CNV_DF$CHROM, CNV_DF$START),]
+    
   }
   
   ################################################################################
@@ -189,15 +192,13 @@ CNproScanCNV <- function(coverageFile,bamFile,fastaFile,GCnorm=TRUE,MAPnorm=FALS
       MERGED_CNV_DF <- rbind(MERGED_CNV_DF, CNV_DF)
     }
     
-    ## write VCF
-    CNV_DF <- CNV_DF[!(is.na(CNV_DF$START)),] # remove NA CNVs
+    ## reformat and remove NAs CNVs
+    MERGED_CNV_DF <- MERGED_CNV_DF[!(is.na(MERGED_CNV_DF$START)),] # remove NA CNVs
     CNV_DF <- as.data.table(MERGED_CNV_DF)
     CNV_DF <- unique(CNV_DF,by=c("CHROM","START","END","TYPE"))
     CNV_DF <- CNV_DF[order(CNV_DF$CHROM, CNV_DF$START),]
-    # sampleName <- strsplit(basename(coverageFile), "[.]")[[1]][1]
-    # writeVCF(CNV_DF, sampleName)
+
   }
-  
   
   return(CNV_DF)
   ## end of function CNproScan
