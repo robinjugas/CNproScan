@@ -39,7 +39,7 @@ gcNormalization <- function(coverageVECTOR, fastaFile, refHeader){
   
   ## GC dataframe GC_tab - 1.col - GC value in % 2.col - median coverageVECTOR of all windows with given GC % value
   GC_tab <- data.frame(GC=integer(), MED_COV=integer())
-  GCsek <- seq(from=min(GC_count), to=max(GC_count))
+  GCsek <- seq(from=0, to=100)
   GC_tab[1:length(GCsek), "GC"] <- GCsek
   GC_tab[, "MED_COV"] <- rep(0, times=length(GCsek))
   for(i in 1:nrow(GC_tab)){
@@ -50,18 +50,37 @@ gcNormalization <- function(coverageVECTOR, fastaFile, refHeader){
   
   ## New normalized coverage
   for(i in 1:referenceLength){
-    GC_act <- GC_count[i]
-    if(GC_act == 0 | GC_tab[GC_act, "GC"] == 0 | is.na(GC_tab[GC_act, "MED_COV"]) | coverageVECTOR[i] < 5 ){
+    GC_act <- as.integer(GC_count[i])
+    if( GC_act == 0 | GC_tab[which(GC_tab$GC==GC_act), "GC"] == 0 | is.na(GC_tab[which(GC_tab$GC==GC_act), "MED_COV"]) | coverageVECTOR[i] < 1  ){ 
       coverageVECTOR_new[i] <- coverageVECTOR[i] # zustava puvodni pokryti
-    }
-    else
-    {
-      med2 <- GC_tab[GC_act, "MED_COV"] # vyhledani medianu pozic pokryti s danym GC poctem ve vytvorene tabulce
+    }else{
+      med2 <- GC_tab[which(GC_tab$GC==GC_act), "MED_COV"] # vyhledani medianu pozic pokryti s danym GC poctem ve vytvorene tabulce
       coverageVECTOR_new[i] <- coverageVECTOR[i]*(med/med2) 
     }
   }
+  
+  # ##COMPARISON
   # diff <- abs(coverageVECTOR_new-coverageVECTOR)
   # plot(diff)
+  # #original dependence
+  # plot(x=GC_tab$GC,y=GC_tab$MED_COV)
+  # ## GC dataframe GC_tab - 1.col - GC value in % 2.col - median coverageVECTOR of all windows with given GC % value
+  # GC_tab <- data.frame(GC=integer(), MED_COV=integer())
+  # GCsek <- seq(from=0, to=100)
+  # GC_tab[1:length(GCsek), "GC"] <- GCsek
+  # GC_tab[, "MED_COV"] <- rep(0, times=length(GCsek))
+  # for(i in 1:nrow(GC_tab)){
+  #   position <- which(GC_count==GC_tab[i, "GC"])
+  #   pom <- median(coverageVECTOR_new[position])
+  #   GC_tab[i, "MED_COV"]  <- pom
+  # }
+  # #new dependence
+  # plot(x=GC_tab$GC,y=GC_tab$MED_COV)
+  # plot(coverageVECTOR)
+  # plot(coverageVECTOR_new)
+  
+  ##############################################
+  
   return(coverageVECTOR_new)
 }
 
