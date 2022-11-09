@@ -190,6 +190,7 @@ CNproScanCNV <- function(coverageFile,bamFile,fastaFile,GCnorm=TRUE,MAPnorm=FALS
     }
     
     ## write VCF
+    CNV_DF <- CNV_DF[!(is.na(CNV_DF$START)),] # remove NA CNVs
     CNV_DF <- as.data.table(MERGED_CNV_DF)
     CNV_DF <- unique(CNV_DF,by=c("CHROM","START","END","TYPE"))
     CNV_DF <- CNV_DF[order(CNV_DF$CHROM, CNV_DF$START),]
