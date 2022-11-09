@@ -95,13 +95,18 @@ cnvOutliers <- function(coverageDF,cores=2,peakDistanceThreshold=20){
       }
     }
   }
-  # if only single CNV is detected
-  if(length(k)==0 & length(idxGESD)!=0)
-  {
+  
+  ## if only single CNV is detected
+  if(length(k)==0 & length(idxGESD)!=0){
     peaks <- vector("list", length = 1)
     dim(peaks) <- c(1, 1)
     matrixtemp <- cbind(idx, outliers_value)
     peaks[[1, 1]] <- matrixtemp
+  }
+  ## if no CNV is detected
+  if(length(k)==0 & length(idxGESD)==0){
+    peaks <- vector("list", length = 0)
+    dim(peaks) <- c(0, 0)
   }
   
   return(peaks)

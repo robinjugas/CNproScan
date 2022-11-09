@@ -75,6 +75,7 @@ cnvDeletions <- function(coverageDF, peakDistanceThreshold=20){
     ## DELETIONS COVERAGE VALUE REPLACED BY MEAN - INFLUENCES GESD OUTLIERS DETECTION
     coverageDF$COVERAGE[idxDEL] <- mean(coverageDF$COVERAGE)
   }
+  
   ## if only single deletion is detected
   if(length(k) == 0 & length(idxDEL) != 0){
     DEL_DF <- data.frame(ID=as.character(), START=integer(), END=integer(), LENGTH=integer(), COVERAGE=integer(), TYPE=character())
@@ -86,6 +87,14 @@ cnvDeletions <- function(coverageDF, peakDistanceThreshold=20){
     DEL_DF[1, "LENGTH"] <- (stop - start)
     DEL_DF[1, "COVERAGE"] <- mean(coverageDF$COVERAGE[start:stop])
     DEL_DF[1, "TYPE"] <- "DEL"
+    
+    ## DELETIONS COVERAGE VALUE REPLACED BY MEAN - INFLUENCES GESD OUTLIERS DETECTION
+    coverageDF$COVERAGE[idxDEL] <- mean(coverageDF$COVERAGE)
+  }
+  
+  ## if no deletion is detected
+  if(length(k)==0 & length(idxDEL)==0){
+    DEL_DF <- data.frame(ID=as.character(), START=integer(), END=integer(), LENGTH=integer(), COVERAGE=integer(), TYPE=character())
   }
   
   return(list(coverageDF, DEL_DF))
