@@ -65,6 +65,8 @@ DF <- CNproScanCNV(coverage_file, bam_file, fasta_file,
 DF <- CNproScanCNV(coverage_file, bam_file, fasta_file, 
                    GCnorm=TRUE, MAPnorm=TRUE, bedgraph_file, cores=4)
 
+# Write VCF file (additional function from the package)
+writeVCF(DF, "fileName.vcf")
 ```
 
 ## Inputs description:
