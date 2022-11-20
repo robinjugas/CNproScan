@@ -1,5 +1,5 @@
 #' REPLICATION ORIGIN BIAS normalization
-#' This function normalizes the replication origin bias. Inspired by https://github.com/XiDsLab/CNV-BAC
+#' This function normalizes the replication origin bias. Credits to: https://github.com/XiDsLab/CNV-BAC
 #' 
 #' @importFrom mgcv gam predict.gam
 #' @param coverage dataframe of coverage, 3 columns CHROM POS COVERAGE
@@ -36,20 +36,23 @@ oricNormalization <- function(coverageVector, referenceLength, oriC_position){
   #
   RC_count <- RC_count[,c(1:3)]
   
-  # plot(RC_count$oriDISTANCE)
-  
   ################################################################################
-
-  ## BOOSTRAPING and PLOTTING
-  XX <- RC_count[sample(nrow(RC_count), 50000, replace = FALSE), ]
-  XX <- XX[order(XX$oriDISTANCE),]
-  XX <- XX[XX$READEPTH<summary(abs(RC_count$READEPTH))[[5]],] #remove values behind 3rd quantile
-  library(ggplot2)
-  ggplot(aes(x=oriDISTANCE, y=READEPTH),data=XX) + geom_point()
   
-  summary(RC_count[,"oriDISTANCE"])
-  summary(RC_count[,"READEPTH"])
-  
+  # # plot(RC_count$oriDISTANCE)
+  # summary(coverageVector)
+  # summary(RC_count$READEPTH)
+  # 
+  # ## BOOSTRAPING and PLOTTING
+  # XX <- RC_count[sample(nrow(RC_count), 50000, replace = FALSE), ]
+  # XX <- XX[order(XX$oriDISTANCE),]
+  # XX <- XX[XX$READEPTH<summary(abs(RC_count$READEPTH))[[5]],] #remove values behind 3rd quantile
+  # library(ggplot2)
+  # ggplot(aes(x=oriDISTANCE, y=READEPTH),data=XX) + geom_point()
+  # 
+  # summary(RC_count[,"oriDISTANCE"])
+  # summary(RC_count[,"READEPTH"])
+  # summary(RC)
+  # summary(oriDIST)
   ################################################################################
   
   ## CORRELATION BETWEEN DISTANCE and COVERAGE
@@ -57,33 +60,57 @@ oricNormalization <- function(coverageVector, referenceLength, oriC_position){
   statistics$p.value
   statistics$estimate
   RHO <- statistics$estimate
-  if (RHO >= 0.9){ #maybe different value
-    # ## REPLACE OUTLIERS
-    readdepthmedian <- median(abs(RC_count$READEPTH))
-    readdepth_1Q <- summary(abs(RC_count$READEPTH))[[2]]
-    readdepth_3Q <- summary(abs(RC_count$READEPTH))[[5]]
-    readdepth_IQR <- IQR(abs(RC_count$READEPTH))
-    #find outliers 1.5xIQR rule
-    out_ind <- which(abs(RC_count$READEPTH)<(readdepth_3Q+1.5*readdepth_IQR) & abs(RC_count$READEPTH)>(readdepth_1Q-1.5*readdepth_IQR) )
-    # replace outliers value with MEDIAN
-    RC_count[out_ind,"READEPTH"] <- readdepthmedian
-    # 
-    # fit model with read-depth without outliers
+  
+  if (RHO >= 0.5){ #maybe different value?
+  
+    # remove outlier residuals
     RC <- as.vector(RC_count$READEPTH)
-    DIST <- as.vector(RC_count$oriDISTANCE)
-    DIST <- scale(DIST)
-    RC <- log2(RC)
-    fit <- mgcv::bam(RC~s(DIST))
-    RC <- as.data.frame(coverageVector)
-    pred <- mgcv::predict.gam(fit,RC)
-    expected <- RC_count$READEPTH + pred
-    # RC_count$normalized <- expected
-    coverageVector_new <- expected
+    oriDIST <- as.vector(RC_count$oriDISTANCE)
     
+    fit <- mgcv::gam(RC~s(oriDIST))
+    
+    residuals <- fit$residuals
+    iqr <- IQR(residuals)
+    index <- which(residuals > quantile(residuals,0.25)-1.5*iqr & residuals < quantile(residuals,0.75)+1.5*iqr)
+    
+    # fit model I
+    RCnew <- RC[index]
+    oriDISTnew <- oriDIST[index]
+    
+    fit <- mgcv::gam(RCnew~s(oriDISTnew))
+    
+    DF <- data.frame(oriDISTnew=oriDIST)
+    pred <- mgcv::predict.gam(fit,DF)
+    
+    RCexpected <- as.vector(RC + pred)
+    IQR <- quantile(RCexpected,0.75)-quantile(RCexpected,0.25)
+    index2 <- which(RCexpected > quantile(RCexpected,0.25)-1.5*IQR & RCexpected < quantile(RCexpected,0.75)+1.5*IQR)
+    
+    # fit model II
+    RCnew <- RC[index2]
+    oriDISTnew <- oriDIST[index2]
+    
+    fit <- mgcv::gam(RCnew~s(oriDISTnew))
+    DF <- data.frame(oriDISTnew=oriDIST)
+    pred <- mgcv::predict.gam(fit,DF)
+    
+    RCexpected <- as.vector(coverageVector + pred)
+    coverageVector_new <- as.integer(RCexpected)
     return(coverageVector_new)
+    
   }
   else{
     return(coverageVector)
   }
 }
 
+# ##COMPARISON
+# summary(coverageVector)
+# summary(coverageVector_new)
+# diff <- abs(coverageVector_new-coverageVector)
+# 
+# # plot genomes
+# par( mfrow= c(3,1))
+# plot(coverageVector)
+# plot(coverageVector_new)
+# plot(diff)
