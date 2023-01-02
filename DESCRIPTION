@@ -1,6 +1,6 @@
 Package: CNproScan
 Title: CNproScan detects and annotates CNVs in bacterial genomes. 
-Version: 0.99.1.0
+Version: 1.0
 Authors@R: 
     person(given = "Robin",
            family = "Jugas",

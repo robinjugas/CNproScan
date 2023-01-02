@@ -16,7 +16,7 @@
 #' @export
 #' 
 
-CNproScanCNV <- function(coverageFile,bamFile,fastaFile,GCnorm=TRUE,MAPnorm=FALSE,bedgraphFile=NULL,cores=2){
+CNproScanCNV <- function(coverageFile,bamFile,fastaFile,GCnorm=TRUE,MAPnorm=FALSE,ORICnorm=FALSE,bedgraphFile=NULL,oriCposition=0,cores=2){
   
   ################################################################################
   ## CHECK INPUTS
@@ -32,6 +32,11 @@ CNproScanCNV <- function(coverageFile,bamFile,fastaFile,GCnorm=TRUE,MAPnorm=FALS
   if (MAPnorm == TRUE & !file.exists(bedgraphFile)){
     stop("`bedgraphFile` file does not exist or is not a valid file.")
   }
+  
+  if (ORICnorm == TRUE & is.null(oriCposition)){
+    stop("`oriCposition` has to be defined of oriC normalization is required.")
+  }
+  
   
   stopifnot("`coverageFile` file does not exist or is not a valid file."=file.exists(coverageFile))
   stopifnot("`bamFile` file does not exist or is not a valid file."=file.exists(bamFile))
@@ -99,24 +104,16 @@ CNproScanCNV <- function(coverageFile,bamFile,fastaFile,GCnorm=TRUE,MAPnorm=FALS
     if(MAPnorm == TRUE & file.exists(bedgraphFile)){coverage$COVERAGE <- mappabilityNormalization(coverage$COVERAGE, bedgraphFile, refHeader)}
     ################################################################################
     ##  oriC normalization
-    # coverageORI   <- oricNormalization(coverage, oriC_position=517)
-    ################################################################################
-    ## DETECTING DELETIONS AS ZERO COVERAGE
-    TEMP <- cnvDeletions(coverage, peakDistanceThreshold)
-    coverage <- TEMP[[1]]
-    DEL_DF <- TEMP[[2]]
+    if(ORICnorm == TRUE & !is.null(oriCposition)){coverage$COVERAGE <- oricNormalization_v2(coverage$COVERAGE, referenceLength, oriCposition)}
     ################################################################################
     ## CNV EVENTS
     peaks <- cnvOutliers(coverage, cores, peakDistanceThreshold)
     ################################################################################
-    ## CNV DUPLICATIONS EVENTS BORDERS DETECTION based on slope of a peak
-    DUP_DF <- cnvBoundaries(peaks, coverage, averageCoverage, step, TRIGGER)
+    ## CNV EVENTS BORDERS DETECTION based on slope of a peak
+    CNV_DF <- cnvBoundaries(peaks, coverage, step, TRIGGER)
     ################################################################################
     ## MERGE
-    CNV_DF <- rbind(DEL_DF, DUP_DF) # MERGE DELETIONS AND DUPLICATIONS
     CNV_DF <- subset(CNV_DF, LENGTH >= 1) # DELETE SINGLE BASE EVENTS 
-    CNV_DF[CNV_DF$COVERAGE < averageCoverage, "TYPE"] <- "DEL" #CHECK FOR CNV < averageCoverage - those are likely deletions
-    gc()
     ################################################################################
     # DISCORDANT READS
     CNV_DF <- cnvDiscordantReads(bamFile, CNV_DF, refHeader, referenceLength)
@@ -124,14 +121,38 @@ CNproScanCNV <- function(coverageFile,bamFile,fastaFile,GCnorm=TRUE,MAPnorm=FALS
     ## ADD CONTIG NAME
     CNV_DF$CHROM <- refHeader
     
-    col_order <- c("ID", "CHROM", colnames(CNV_DF)[3:ncol(CNV_DF)-1])
-    CNV_DF <- CNV_DF[, col_order]
+    ## ADD CNV copy number
+    if(nrow(CNV_DF)>0){
+      CNV_DF$COPY_NUMBER <- round(CNV_DF$COVERAGE/averageCoverage)
+    } else{CNV_DF <- data.frame(ID=as.character(), START=integer(), END=integer(), LENGTH=integer(), COVERAGE=integer(), COPY_NUMBER=integer(),TYPE=character(),SUBTYPE=as.character(),
+                                reads_TOTAL=integer(),reads_supporting_Deletion=integer(),reads_supporting_Tandem_Direct=integer(),reads_supporting_Tandem_Indirect=integer(),
+                                reads_supporting_Interspersed_Direct=integer(),reads_supporting_Interspersed_Indirect=integer())
+    }
+    
+    #reorder columns
+    CNV_DF <- CNV_DF[,c("ID",
+                        "CHROM",
+                        "START",
+                        "END",
+                        "LENGTH",
+                        "COVERAGE",
+                        "COPY_NUMBER",
+                        "TYPE",
+                        "SUBTYPE",
+                        "reads_TOTAL",
+                        "reads_supporting_Deletion",
+                        "reads_supporting_Tandem_Direct",
+                        "reads_supporting_Tandem_Indirect",
+                        "reads_supporting_Interspersed_Direct",
+                        "reads_supporting_Interspersed_Indirect"
+    )]
     
     ## reformat and remove NAs CNVs
     CNV_DF <- CNV_DF[!(is.na(CNV_DF$START)),] # remove NA CNVs
     CNV_DF <- as.data.table(CNV_DF)
-    CNV_DF <- unique(CNV_DF,by=c("CHROM","START","END","TYPE"))
+    CNV_DF <- unique(CNV_DF,by=c("CHROM","START","END","TYPE","SUBTYPE"))
     CNV_DF <- CNV_DF[order(CNV_DF$CHROM, CNV_DF$START),]
+    
     
   }
   
@@ -156,48 +177,65 @@ CNproScanCNV <- function(coverageFile,bamFile,fastaFile,GCnorm=TRUE,MAPnorm=FALS
       
       ################################################################################
       ##  GC normalization
-      if(GCnorm == TRUE){CONTIG_coverage$COVERAGE <- gcNormalization(CONTIG_coverage$COVERAGE, fastaFile, refHeader)}
+      if(GCnorm == TRUE){coverage$COVERAGE <- gcNormalization(coverage$COVERAGE, fastaFile, refHeader)}
       ################################################################################
       ##  MAPPABILITY normalization
-      if(MAPnorm == TRUE & file.exists(bedgraphFile)){CONTIG_coverage$COVERAGE <- mappabilityNormalization(CONTIG_coverage$COVERAGE, bedgraphFile, refHeader)}
+      if(MAPnorm == TRUE & file.exists(bedgraphFile)){coverage$COVERAGE <- mappabilityNormalization(coverage$COVERAGE, bedgraphFile, refHeader)}
       ################################################################################
       ##  oriC normalization
-      ## coverageORI   <- oricNormalization(CONTIG_coverage, oriC_position=517)
-      ################################################################################
-      ## DETECTING DELETIONS AS ZERO COVERAGE
-      TEMP <- cnvDeletions(CONTIG_coverage, peakDistanceThreshold)
-      CONTIG_coverage <- TEMP[[1]]
-      DEL_DF <- TEMP[[2]]
+      if(ORICnorm == TRUE & !is.null(oriCposition)){coverage$COVERAGE <- oricNormalization_v2(coverage$COVERAGE, referenceLength, oriCposition)}
       ################################################################################
       ## CNV EVENTS
-      peaks <- cnvOutliers(CONTIG_coverage, cores, peakDistanceThreshold)
+      peaks <- cnvOutliers(coverage, cores, peakDistanceThreshold)
       ################################################################################
-      ## CNV DUPLICATIONS EVENTS BORDERS DETECTION based on slope of a peak
-      DUP_DF <- cnvBoundaries(peaks, CONTIG_coverage, averageCoverage, step, TRIGGER)
+      ## CNV EVENTS BORDERS DETECTION based on slope of a peak
+      CNV_DF <- cnvBoundaries(peaks, coverage, step, TRIGGER)
       ################################################################################
       ## MERGE
-      CNV_DF <- rbind(DEL_DF, DUP_DF) # MERGE DELETIONS AND DUPLICATIONS
-      CNV_DF <- subset(CNV_DF, LENGTH>=1) # DELETE SINGLE BASE EVENTS 
-      CNV_DF[CNV_DF$COVERAGE<averageCoverage, "TYPE"] <- "DEL" #CHECK FOR CNV < averageCoverage - those are likely deletions
-      gc()
+      CNV_DF <- subset(CNV_DF, LENGTH >= 1) # DELETE SINGLE BASE EVENTS 
       ################################################################################
-      ## DISCORDANT READS
+      # DISCORDANT READS
       CNV_DF <- cnvDiscordantReads(bamFile, CNV_DF, refHeader, referenceLength)
+      ################################################################################
       ## ADD CONTIG NAME
       CNV_DF$CHROM <- refHeader
       
-      col_order <- c("ID", "CHROM", colnames(CNV_DF)[3:ncol(CNV_DF)-1])
-      CNV_DF <- CNV_DF[, col_order]
+      ## ADD CNV copy number
+      if(nrow(CNV_DF)>0){
+        CNV_DF$COPY_NUMBER <- round(CNV_DF$COVERAGE/averageCoverage)
+      } else{CNV_DF <- data.frame(ID=as.character(), START=integer(), END=integer(), LENGTH=integer(), COVERAGE=integer(), COPY_NUMBER=integer(),TYPE=character(),SUBTYPE=as.character(),
+                                  reads_TOTAL=integer(),reads_supporting_Deletion=integer(),reads_supporting_Tandem_Direct=integer(),reads_supporting_Tandem_Indirect=integer(),
+                                  reads_supporting_Interspersed_Direct=integer(),reads_supporting_Interspersed_Indirect=integer())
+      }
       
+      #reorder columns
+      CNV_DF <- CNV_DF[,c("ID",
+                          "CHROM",
+                          "START",
+                          "END",
+                          "LENGTH",
+                          "COVERAGE",
+                          "COPY_NUMBER",
+                          "TYPE",
+                          "SUBTYPE",
+                          "reads_TOTAL",
+                          "reads_supporting_Deletion",
+                          "reads_supporting_Tandem_Direct",
+                          "reads_supporting_Tandem_Indirect",
+                          "reads_supporting_Interspersed_Direct",
+                          "reads_supporting_Interspersed_Indirect"
+      )]
+      
+      CNV_DF <- as.data.frame(CNV_DF)
       MERGED_CNV_DF <- rbind(MERGED_CNV_DF, CNV_DF)
     }
     
     ## reformat and remove NAs CNVs
     MERGED_CNV_DF <- MERGED_CNV_DF[!(is.na(MERGED_CNV_DF$START)),] # remove NA CNVs
     CNV_DF <- as.data.table(MERGED_CNV_DF)
-    CNV_DF <- unique(CNV_DF,by=c("CHROM","START","END","TYPE"))
+    CNV_DF <- unique(CNV_DF,by=c("CHROM","START","END","TYPE","SUBTYPE"))
     CNV_DF <- CNV_DF[order(CNV_DF$CHROM, CNV_DF$START),]
-
+    
   }
   
   return(CNV_DF)

@@ -1,4 +1,4 @@
-#' cnvOutliers
+#' cnvOutliers v2
 #' This function detects outliers in whole coverage with GESD, merges close events together and returns a cell data type 
 #' Inputs: coverage dataframe (1st col POS, 2nd col CCOVERAGE), path to fasta file
 #' Output:  vector of modified COVERAGE values
@@ -12,10 +12,65 @@
 #' @return list of vectors with CNV peaks coordinates 
 #' @export
 #' @noRd
-cnvOutliers <- function(coverageDF,cores=2,peakDistanceThreshold=20){
+
+cnvOutliers <- function(coverageDF,cores=1,peakDistanceThreshold=20){
   ## PARALLEL LOOP OUTLIERS DETECTION
+  originalcoverageDF <- coverageDF
+  ################################################################################
+  ## DELETING crossovers at the start and at the end and replace them by mean of whole COVERAGE because there is usually specific signal
+  cutoff <- 100
+  coverageDF$COVERAGE[1:cutoff] <- rep(mean(coverageDF$COVERAGE), times=length(coverageDF$COVERAGE[1:cutoff]))
+  end <- length(coverageDF$COVERAGE)
+  coverageDF$COVERAGE[(end-cutoff):end] <- rep(mean(coverageDF$COVERAGE), times=length(coverageDF$COVERAGE[(end-cutoff):end]))
   
-  # cores <- parallel::detectCores(logical = FALSE) #should be odd?
+  ################################################################################
+  ## DETECT EXTREMES/TAILS and remove them to reduce search space for exhaustive GESD
+  
+  # zero coverage - definitely a deletion
+  deletions <- which(coverageDF$COVERAGE == 0)
+  
+  # 3IQR rule
+  coverage_1Q <- summary(coverageDF$COVERAGE)[[2]]
+  coverage_3Q <- summary(coverageDF$COVERAGE)[[5]]
+  coverage_IQR <- IQR(coverageDF$COVERAGE)
+  
+  if((coverage_1Q-3*coverage_IQR) > min(coverageDF$COVERAGE)){
+    extremesLow <- which(coverageDF$COVERAGE<=(coverage_1Q-3*coverage_IQR))
+  }else(extremesLow <- c())
+  
+  if((coverage_3Q+3*coverage_IQR) < max(coverageDF$COVERAGE)){
+    extremesHigh <- which(coverageDF$COVERAGE>=(coverage_3Q+3*coverage_IQR))
+  }else(extremesHigh <- c())
+  
+  # length(deletions)
+  # length(extremesLow)
+  # length(extremesHigh)
+  
+  extremeOutliers <- c(deletions,extremesLow,extremesHigh) # combined GESD AND prescreening MZSCORE 
+  extremeOutliers <- unique(extremeOutliers)
+  # length(combinedOutliers)
+  
+  ################################################################################
+  # replace by mean
+  # coverageDF$COVERAGE[extremeOutliers] <- NA
+  coverageDF$COVERAGE[extremeOutliers] <- mean(coverageDF$COVERAGE)
+  
+  #plot boxplot
+  # data <- data.frame( raw = originalcoverageDF$COVERAGE,
+  #                     withoutTails = coverageDF$COVERAGE    )
+  # 
+  # boxplot(data)
+  # dev.off()
+  
+  ################################################################################
+  # paralell processing  GESD
+  
+  # if estimatedOutliers < 5000 cores=1 , no performance benefit 
+  estimatedOutliers <- mzscore(coverageDF$COVERAGE)
+  if(length(estimatedOutliers)<5000){cores=1}
+
+  
+  # cores <- parallel::detectCores(logical = FALSE) 
   chunks <- parallel::splitIndices(length(coverageDF$COVERAGE), ncl = cores)
   
   #create the cluster
@@ -56,7 +111,11 @@ cnvOutliers <- function(coverageDF,cores=2,peakDistanceThreshold=20){
   
   ##############################################################################
   ## MERGING CLOSE CNV EVENTS TOGETHER
-  idxGESD <- sort(Outliers)
+  
+  combinedOutliers <- c(extremeOutliers,Outliers) # combined GESD AND prescreening MZSCORE 
+  combinedOutliers <- unique(combinedOutliers)
+  
+  idxGESD <- sort(combinedOutliers)
   differences <- diff(idxGESD)
   kk<-which(differences>1 & differences<peakDistanceThreshold)
   

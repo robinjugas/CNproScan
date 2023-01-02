@@ -15,6 +15,8 @@ mzscore <- function(coverageVector) {
     M[i] <- 0.6745 * abs(coverageVector[i] - medianX) / MAD
   }
   idx <- which(M > 3.5)
+  
   outliers <- coverageVector[idx]
-  return(outliers)
+  
+  return(idx)
 }

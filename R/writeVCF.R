@@ -43,6 +43,8 @@ writeVCF <- function(CNV_DF,fileName){
     temp <- do.call(paste, c(VCF_tab[i, c(1:ncol(VCF_tab))], sep="\t"))
     write(temp, file=fileName, append=TRUE)
   }
+  
+  if(file.exists(fileName)){return(NULL)}
 
 }
 

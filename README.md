@@ -3,9 +3,10 @@ CNproScan is R package developed for CNV detection in bacterial genomes. It empl
 
 The not-updated Matlab version is here: https://github.com/robinjugas/CNproScanMatlab
 
+This is the latest version v1.0 For previous versions see Tags/Releases. 
 
 ## Dependencies:
-Package was tested on R 4.x with several dependencies: parallel, foreach, doParallel, seqinr, Rsamtools, GenomicRanges, IRanges. 
+Package was tested on R 4.x with several dependencies: parallel, foreach, doParallel, seqinr, Rsamtools, GenomicRanges, IRanges, data.table. 
 
 ## Installation
 ```
@@ -41,6 +42,9 @@ genmap index -F reference.fasta -I mapp_index
 genmap map -K 30 -E 2 -I mapp_index -O mapp_genmap -t -w -bg
 ```
 
+<li>origin of replication position/s - obtained from DoriC (https://origin.tubic.org/doric/browse/bacteria) - only for the oriC normalization </li>
+
+
 </ol>
 
 ## Usage:
@@ -65,6 +69,15 @@ DF <- CNproScanCNV(coverage_file, bam_file, fasta_file,
 DF <- CNproScanCNV(coverage_file, bam_file, fasta_file, 
                    GCnorm=TRUE, MAPnorm=TRUE, bedgraph_file, cores=4)
 
+# Both GC normalization, mappability normalization and OriC normalization
+DF <- CNproScanCNV(coverage_file, bam_file, fasta_file, 
+                   GCnorm=TRUE, MAPnorm=TRUE,ORICnorm=TRUE, bedgraph_file,oriCposition=1, cores=4)
+# or with multiple oriC positions
+DF <- CNproScanCNV(coverage_file, bam_file, fasta_file, 
+                   GCnorm=TRUE, MAPnorm=TRUE,ORICnorm=TRUE, bedgraph_file, oriCposition=c(10,5000), cores=4)
+                   
+OriC normalization is working only in single-chromosome mode!
+
 # Write VCF file (additional function from the package)
 writeVCF(DF, "fileName.vcf")
 ```
@@ -88,12 +101,14 @@ writeVCF(DF, "fileName.vcf")
 
 ## In development - will be added:
 <ul>
-<li>oriC normalization </li>
 </ul>
 
 ## Recent updates:
 <ul>
-<li>GC and mappability normalization </li>
+<li> Tweaked CNV detection </li>
+<li> Tweaked identification of CNV type </li>
+<li>GC and mappability normalization modified and tweaked </li>
+<li>new oriC normalization </li>
 <li>VCF output</li>
 <li>multi chromosome/contig support</li>
 </ul>

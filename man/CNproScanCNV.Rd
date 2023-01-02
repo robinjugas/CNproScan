@@ -12,7 +12,9 @@ CNproScanCNV(
   fastaFile,
   GCnorm = TRUE,
   MAPnorm = FALSE,
+  ORICnorm = FALSE,
   bedgraphFile = NULL,
+  oriCposition = 0,
   cores = 2
 )
 }
