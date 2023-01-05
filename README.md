@@ -61,25 +61,33 @@ bedgraph_file <- "mapp_genmap.bedgraph"
 
 # For only GC normalization
 DF <- CNproScanCNV(coverage_file, bam_file, fasta_file, 
-                   GCnorm=TRUE, MAPnorm=FALSE, cores=4)
+                   GCnorm=TRUE, MAPnorm=FALSE, ORICnorm=FALSE, cores=4)
+                   
 # Without any normalization
 DF <- CNproScanCNV(coverage_file, bam_file, fasta_file, 
-                   GCnorm=FALSE, MAPnorm=FALSE, cores=4)
+                   GCnorm=FALSE, MAPnorm=FALSE, ORICnorm=FALSE, cores=4)
+                   
 # Both GC normalization and mappability normalization
 DF <- CNproScanCNV(coverage_file, bam_file, fasta_file, 
-                   GCnorm=TRUE, MAPnorm=TRUE, bedgraph_file, cores=4)
+                   GCnorm=TRUE, MAPnorm=TRUE, ORICnorm=FALSE, bedgraph_file, cores=4)
 
 # Both GC normalization, mappability normalization and OriC normalization
 DF <- CNproScanCNV(coverage_file, bam_file, fasta_file, 
-                   GCnorm=TRUE, MAPnorm=TRUE,ORICnorm=TRUE, bedgraph_file,oriCposition=1, cores=4)
+                   GCnorm=TRUE, MAPnorm=TRUE, ORICnorm=TRUE, bedgraph_file, oriCposition=1, cores=4)
+                   
 # or with multiple oriC positions
 DF <- CNproScanCNV(coverage_file, bam_file, fasta_file, 
-                   GCnorm=TRUE, MAPnorm=TRUE,ORICnorm=TRUE, bedgraph_file, oriCposition=c(10,5000), cores=4)
+                   GCnorm=TRUE, MAPnorm=TRUE, ORICnorm=TRUE, bedgraph_file, oriCposition=c(10,5000), cores=4)
                    
-OriC normalization is working only in single-chromosome mode!
+Caution : OriC normalization is working only in single-chromosome mode!
 
 # Write VCF file (additional function from the package)
 writeVCF(DF, "fileName.vcf")
+
+# write TAB-separated file (optional)
+write.table(DF, file = "TSVfile.tsv", row.names=FALSE, col.names = TRUE, sep="\t")
+
+
 ```
 
 ## Inputs description:
@@ -90,7 +98,9 @@ writeVCF(DF, "fileName.vcf")
 <li>GCnorm = TRUE/FALSE whether to do GC bias normalization </li>
 <li>MAPnorm = TRUE/FALSE whether to do mappability normalization </li>
 <li> bedgraph_file = path to the bedgraph file outputed from genmap tool. </li>
-<li>cores = number of threads for foreach %dopar%. Recommended default = 4, or more. Tested on 6,8 and 12 cores.  </li>
+<li>ORICnorm = TRUE/FALSE whether to do origin of replication bias normalization </li>
+<li>oriCposition = single integer or vector c() with multiple oriC locations </li>
+<li>cores = number of threads for foreach %dopar%. Recommended default = 2, or more. </li>
 </ul>
 
 ## Outputs:
