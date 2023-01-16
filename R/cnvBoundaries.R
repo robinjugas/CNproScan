@@ -56,7 +56,7 @@ cnvBoundaries <- function(peaksCELL, coverageDF, step=11, TRIGGER=5){
         vektor <- c()
         while (trigger1 < TRIGGER ) {
           # dont go if it's already down to baseline
-          if (any(vektor >= lowerThreshold)){break}
+          if (any(vektor >= averageCoverage)){break}
           # dont go beyond start
           if (start <= 1 | (start - count1 * step - step) <= 1){
             break
@@ -79,7 +79,7 @@ cnvBoundaries <- function(peaksCELL, coverageDF, step=11, TRIGGER=5){
         vektor <- c()
         while (trigger2 < TRIGGER) {
           # dont go if it's already down to baseline
-          if (any(vektor >= lowerThreshold)){break}
+          if (any(vektor >= averageCoverage)){break}
           # dont go beyond stop
           if (stop >= length(coverageSignal) |  (stop + count2 * step + step) >= length(coverageSignal)){
             break
@@ -115,7 +115,7 @@ cnvBoundaries <- function(peaksCELL, coverageDF, step=11, TRIGGER=5){
         vektor <- c()
         while (trigger1 < TRIGGER ) {
           # dont go if it's already down to baseline
-          if (any(vektor <= upperThreshold)){break}
+          if (any(vektor <= averageCoverage)){break}
           # dont go beyond start
           if (start <= 1 | (start - count1 * step - step) <= 1){
             break
@@ -140,7 +140,7 @@ cnvBoundaries <- function(peaksCELL, coverageDF, step=11, TRIGGER=5){
         vektor <- c()
         while (trigger2 < TRIGGER) {
           # dont go if it's already down to baseline
-          if (any(vektor <= upperThreshold)){break}
+          if (any(vektor <= averageCoverage)){break}
           # dont go beyond stop
           if (stop >= length(coverageSignal) | (stop + count2 * step + step) >= length(coverageSignal)){
             break
