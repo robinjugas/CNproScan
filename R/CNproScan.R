@@ -124,7 +124,7 @@ CNproScanCNV <- function(coverageFile,bamFile,fastaFile,GCnorm=TRUE,MAPnorm=FALS
       ## ADD CONTIG NAME
       CNV_DF$CHROM <- refHeader
       CNV_DF$COPY_NUMBER <- round(CNV_DF$COVERAGE/averageCoverage)
-    } else{CNV_DF <- data.frame(ID=as.character(), START=integer(), END=integer(), LENGTH=integer(), COVERAGE=integer(), COPY_NUMBER=integer(),TYPE=character(),SUBTYPE=as.character(),
+    } else{CNV_DF <- data.frame(ID=as.character(), CHROM=as.character(), START=integer(), END=integer(), LENGTH=integer(), COVERAGE=integer(), COPY_NUMBER=integer(),TYPE=character(),SUBTYPE=as.character(),
                                 reads_TOTAL=integer(),reads_supporting_Deletion=integer(),reads_supporting_Tandem_Direct=integer(),reads_supporting_Tandem_Indirect=integer(),
                                 reads_supporting_Interspersed_Direct=integer(),reads_supporting_Interspersed_Indirect=integer())
     }
@@ -207,7 +207,7 @@ CNproScanCNV <- function(coverageFile,bamFile,fastaFile,GCnorm=TRUE,MAPnorm=FALS
         ## ADD CONTIG NAME
         CNV_DF$CHROM <- refHeader
         CNV_DF$COPY_NUMBER <- round(CNV_DF$COVERAGE/averageCoverage)
-      } else{CNV_DF <- data.frame(ID=as.character(), START=integer(), END=integer(), LENGTH=integer(), COVERAGE=integer(), COPY_NUMBER=integer(),TYPE=character(),SUBTYPE=as.character(),
+      } else{CNV_DF <- data.frame(ID=as.character(), CHROM=as.character(), START=integer(), END=integer(), LENGTH=integer(), COVERAGE=integer(), COPY_NUMBER=integer(),TYPE=character(),SUBTYPE=as.character(),
                                   reads_TOTAL=integer(),reads_supporting_Deletion=integer(),reads_supporting_Tandem_Direct=integer(),reads_supporting_Tandem_Indirect=integer(),
                                   reads_supporting_Interspersed_Direct=integer(),reads_supporting_Interspersed_Indirect=integer())
       }
