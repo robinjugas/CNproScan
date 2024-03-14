@@ -118,11 +118,11 @@ CNproScanCNV <- function(coverageFile,bamFile,fastaFile,GCnorm=TRUE,MAPnorm=FALS
     # DISCORDANT READS
     CNV_DF <- cnvDiscordantReads(bamFile, CNV_DF, refHeader, referenceLength)
     ################################################################################
-    ## ADD CONTIG NAME
-    CNV_DF$CHROM <- refHeader
     
     ## ADD CNV copy number
     if(nrow(CNV_DF)>0){
+      ## ADD CONTIG NAME
+      CNV_DF$CHROM <- refHeader
       CNV_DF$COPY_NUMBER <- round(CNV_DF$COVERAGE/averageCoverage)
     } else{CNV_DF <- data.frame(ID=as.character(), START=integer(), END=integer(), LENGTH=integer(), COVERAGE=integer(), COPY_NUMBER=integer(),TYPE=character(),SUBTYPE=as.character(),
                                 reads_TOTAL=integer(),reads_supporting_Deletion=integer(),reads_supporting_Tandem_Direct=integer(),reads_supporting_Tandem_Indirect=integer(),
@@ -130,22 +130,24 @@ CNproScanCNV <- function(coverageFile,bamFile,fastaFile,GCnorm=TRUE,MAPnorm=FALS
     }
     
     #reorder columns
-    CNV_DF <- CNV_DF[,c("ID",
-                        "CHROM",
-                        "START",
-                        "END",
-                        "LENGTH",
-                        "COVERAGE",
-                        "COPY_NUMBER",
-                        "TYPE",
-                        "SUBTYPE",
-                        "reads_TOTAL",
-                        "reads_supporting_Deletion",
-                        "reads_supporting_Tandem_Direct",
-                        "reads_supporting_Tandem_Indirect",
-                        "reads_supporting_Interspersed_Direct",
-                        "reads_supporting_Interspersed_Indirect"
-    )]
+    if(nrow(CNV_DF)>0){
+      CNV_DF <- CNV_DF[,c("ID",
+                          "CHROM",
+                          "START",
+                          "END",
+                          "LENGTH",
+                          "COVERAGE",
+                          "COPY_NUMBER",
+                          "TYPE",
+                          "SUBTYPE",
+                          "reads_TOTAL",
+                          "reads_supporting_Deletion",
+                          "reads_supporting_Tandem_Direct",
+                          "reads_supporting_Tandem_Indirect",
+                          "reads_supporting_Interspersed_Direct",
+                          "reads_supporting_Interspersed_Indirect"
+      )]
+    }
     
     ## reformat and remove NAs CNVs
     CNV_DF <- CNV_DF[!(is.na(CNV_DF$START)),] # remove NA CNVs
@@ -155,6 +157,7 @@ CNproScanCNV <- function(coverageFile,bamFile,fastaFile,GCnorm=TRUE,MAPnorm=FALS
     
     
   }
+  
   
   ################################################################################
   ################################################################################
@@ -197,34 +200,38 @@ CNproScanCNV <- function(coverageFile,bamFile,fastaFile,GCnorm=TRUE,MAPnorm=FALS
       # DISCORDANT READS
       CNV_DF <- cnvDiscordantReads(bamFile, CNV_DF, refHeader, referenceLength)
       ################################################################################
-      ## ADD CONTIG NAME
-      CNV_DF$CHROM <- refHeader
+      
       
       ## ADD CNV copy number
       if(nrow(CNV_DF)>0){
+        ## ADD CONTIG NAME
+        CNV_DF$CHROM <- refHeader
         CNV_DF$COPY_NUMBER <- round(CNV_DF$COVERAGE/averageCoverage)
       } else{CNV_DF <- data.frame(ID=as.character(), START=integer(), END=integer(), LENGTH=integer(), COVERAGE=integer(), COPY_NUMBER=integer(),TYPE=character(),SUBTYPE=as.character(),
                                   reads_TOTAL=integer(),reads_supporting_Deletion=integer(),reads_supporting_Tandem_Direct=integer(),reads_supporting_Tandem_Indirect=integer(),
                                   reads_supporting_Interspersed_Direct=integer(),reads_supporting_Interspersed_Indirect=integer())
       }
       
+      
       #reorder columns
-      CNV_DF <- CNV_DF[,c("ID",
-                          "CHROM",
-                          "START",
-                          "END",
-                          "LENGTH",
-                          "COVERAGE",
-                          "COPY_NUMBER",
-                          "TYPE",
-                          "SUBTYPE",
-                          "reads_TOTAL",
-                          "reads_supporting_Deletion",
-                          "reads_supporting_Tandem_Direct",
-                          "reads_supporting_Tandem_Indirect",
-                          "reads_supporting_Interspersed_Direct",
-                          "reads_supporting_Interspersed_Indirect"
-      )]
+      if(nrow(CNV_DF)>0){
+        CNV_DF <- CNV_DF[,c("ID",
+                            "CHROM",
+                            "START",
+                            "END",
+                            "LENGTH",
+                            "COVERAGE",
+                            "COPY_NUMBER",
+                            "TYPE",
+                            "SUBTYPE",
+                            "reads_TOTAL",
+                            "reads_supporting_Deletion",
+                            "reads_supporting_Tandem_Direct",
+                            "reads_supporting_Tandem_Indirect",
+                            "reads_supporting_Interspersed_Direct",
+                            "reads_supporting_Interspersed_Indirect"
+        )]
+      }
       
       CNV_DF <- as.data.frame(CNV_DF)
       MERGED_CNV_DF <- rbind(MERGED_CNV_DF, CNV_DF)
