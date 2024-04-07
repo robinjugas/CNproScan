@@ -81,6 +81,40 @@ CNproScanCNV <- function(coverageFile,bamFile,fastaFile,GCnorm=TRUE,MAPnorm=FALS
   BAMContigList <- as.character(unique(dfBAM$rname)) #GET CONTIGS
   rm(dfBAM, bam, parameters, flag)
   
+  ################################################################################
+  ## DIFFERENT CONTIGS NUMBER, also chromosome from coverage File may be numeric, while from BAM and FASTA an character
+  
+  # if not as string, make string
+  # if(!is.character(CoverageContigList)){
+  #   
+  #   CoverageContigList <- as.character(CoverageContigList)
+  #   }
+  
+  # CoverageContigList <- c(1,2,3,4,5)
+  # CoverageContigList <- as.vector(CoverageContigList,"character")
+  # CoverageContigList
+  # 
+  # CoverageContigList <- c(1,2,3,4,5)
+  # CoverageContigList <- as.character(CoverageContigList)
+  # CoverageContigList
+  
+  
+  # keep only those in coverage File (aka CoverageContigList)
+  l <- list(fastaContiglist,CoverageContigList,BAMContigList)
+  # all(sapply(l, length) == length(l[[1]]))
+  if(!all(sapply(l, length) == length(l[[1]]))){
+    fastaContiglist <- intersect(fastaContiglist,CoverageContigList)
+    BAMContigList <- intersect(BAMContigList,CoverageContigList)
+  }
+  
+  CoverageContigList
+  fastaContiglist
+  BAMContigList
+  
+  numberOfFastaContigs <- length(fastaContiglist)
+  numberOfBAMContigs <- length(BAMContigList)
+  numberOfCoverageContigs <- length(CoverageContigList)
+  
   
   ################################################################################
   ################################################################################
