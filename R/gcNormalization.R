@@ -21,12 +21,14 @@ gcNormalization <- function(coverageVECTOR, fastaFile, refHeader){
   reference <- seqinr::read.fasta(fastaFile, seqonly = FALSE, whole.header=FALSE)
   reference <- reference[[which(names(reference)==refHeader)]]
 
+  referenceLength_contig <- length(reference)
+
   ## DATA.FRAME with windows
   WINDOWS <- data.frame(START=integer(), STOP=integer(),GC=integer(),READDEPTH=integer())
-  WINDOWS[1:length(seq(from=1, to=referenceLength, by=windowLength)),"START"] <- seq(from=1, to=referenceLength, by=windowLength)
+  WINDOWS[1:length(seq(from=1, to=referenceLength_contig, by=windowLength)),"START"] <- seq(from=1, to=referenceLength_contig, by=windowLength)
   WINDOWS$STOP <- WINDOWS$START+windowLength-1
   WINDOWS <- WINDOWS[-nrow(WINDOWS)] #delete last window
-  WINDOWS$STOP[nrow(WINDOWS)] <- referenceLength #extend the last windows to the end
+  WINDOWS$STOP[nrow(WINDOWS)] <- referenceLength_contig #extend the last windows to the end
   
   ## Calculate GC content  and READ count in window
   RC_count <- rep(0, times=nrow(WINDOWS))
