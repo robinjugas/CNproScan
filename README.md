@@ -25,14 +25,14 @@ bwa index -a is reference.fasta
 samtools faidx reference.fasta
 bwa mem reference.fasta read1.fq read2.fq > file.sam
 samtools view -b -F 4 file.sam > file.bam # mapped reads only
-samtools sort -o file.bam file1.bam
-samtools index file.bam
+samtools sort -o file_sorted.bam file.bam
+samtools index file_sorted.bam
 ```
 
-<li>coverage file (including zero values with -a swtich) </li>
+<li>coverage file (including zero values with -a switch) </li>
 
 ```
-samtools depth -a file.bam > file.coverage
+samtools depth -a file_sorted.bam > file.coverage
 ```
 
 <li>genome mappability file - obtained by GENMAP (https://github.com/cpockrandt/genmap) - only for the mappability normalization </li>
